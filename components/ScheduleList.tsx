@@ -3,9 +3,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { isSameDay, isToday, startOfWeek, endOfWeek, isThisWeek, isThisMonth } from 'date-fns';
 import { PaymentEvent } from '@/lib/billing';
-import { formatCurrency, formatDateShort, formatDayOfWeek } from '@/lib/format';
+import { formatCurrencyCompact, formatDateShort, formatDayOfWeek } from '@/lib/format';
 import { categoryConfig } from '@/lib/theme';
 import { useTranslation } from '@/lib/i18n';
+import { useFx } from '@/lib/FxContext';
+import { convertCurrency } from '@/lib/fx';
 import { Sparkles, Tv, CreditCard, MoreHorizontal } from 'lucide-react';
 
 const iconComponents = {
@@ -26,6 +28,7 @@ interface GroupedEvents {
 
 export function ScheduleList({ events }: ScheduleListProps) {
     const { t, language } = useTranslation();
+    const { displayCurrency, fxRates } = useFx();
 
     // Group events by period
     const groupEvents = (): GroupedEvents[] => {
@@ -86,6 +89,14 @@ export function ScheduleList({ events }: ScheduleListProps) {
                             const Icon = iconComponents[config.icon as keyof typeof iconComponents];
                             const isEventToday = isToday(event.date);
 
+                            const convertedAmount = convertCurrency(
+                                event.amount,
+                                event.currency,
+                                displayCurrency,
+                                fxRates
+                            );
+                            const isOriginalDifferent = event.currency !== displayCurrency;
+
                             return (
                                 <motion.div
                                     key={`${event.subscriptionId}-${event.date.getTime()}`}
@@ -113,14 +124,21 @@ export function ScheduleList({ events }: ScheduleListProps) {
                                     </div>
                                     <div className="text-right">
                                         <p className="font-semibold text-gray-900">
-                                            {formatCurrency(event.amount)}
+                                            {formatCurrencyCompact(convertedAmount, displayCurrency)}
                                         </p>
-                                        <span
-                                            className="text-xs font-medium"
-                                            style={{ color: config.colors.text }}
-                                        >
-                                            {event.billingCycle === 'MONTHLY' ? 'M' : 'Y'}
-                                        </span>
+                                        <div className="flex flex-col items-end">
+                                            {isOriginalDifferent && (
+                                                <span className="text-xs text-gray-400">
+                                                    {formatCurrencyCompact(event.amount, event.currency)}
+                                                </span>
+                                            )}
+                                            <span
+                                                className="text-xs font-medium"
+                                                style={{ color: config.colors.text }}
+                                            >
+                                                {event.billingCycle === 'MONTHLY' ? '/mo' : '/yr'}
+                                            </span>
+                                        </div>
                                     </div>
                                 </motion.div>
                             );

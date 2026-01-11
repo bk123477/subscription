@@ -3,9 +3,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { PaymentEvent } from '@/lib/billing';
-import { formatCurrency, formatDateMedium, formatDayOfWeek } from '@/lib/format';
+import { formatCurrencyCompact, formatDateMedium } from '@/lib/format';
 import { categoryConfig } from '@/lib/theme';
 import { useTranslation } from '@/lib/i18n';
+import { useFx } from '@/lib/FxContext';
+import { convertCurrency } from '@/lib/fx';
 import { Sparkles, Tv, CreditCard, MoreHorizontal } from 'lucide-react';
 
 const iconComponents = {
@@ -24,8 +26,11 @@ interface DayEventsSheetProps {
 
 export function DayEventsSheet({ isOpen, onClose, date, events }: DayEventsSheetProps) {
     const { t, language } = useTranslation();
+    const { displayCurrency, fxRates } = useFx();
 
-    const totalAmount = events.reduce((sum, e) => sum + e.amount, 0);
+    const totalAmount = events.reduce((sum, e) => {
+        return sum + convertCurrency(e.amount, e.currency, displayCurrency, fxRates);
+    }, 0);
 
     return (
         <AnimatePresence>
@@ -52,7 +57,7 @@ export function DayEventsSheet({ isOpen, onClose, date, events }: DayEventsSheet
                                     {formatDateMedium(date, language)}
                                 </h2>
                                 <p className="text-sm text-gray-500">
-                                    {events.length} {t('common.payments')} · {formatCurrency(totalAmount)}
+                                    {events.length} {t('common.payments')} · {formatCurrencyCompact(totalAmount, displayCurrency)}
                                 </p>
                             </div>
                             <button
@@ -68,6 +73,14 @@ export function DayEventsSheet({ isOpen, onClose, date, events }: DayEventsSheet
                             {events.map((event, index) => {
                                 const config = categoryConfig[event.category];
                                 const Icon = iconComponents[config.icon as keyof typeof iconComponents];
+
+                                const convertedAmount = convertCurrency(
+                                    event.amount,
+                                    event.currency,
+                                    displayCurrency,
+                                    fxRates
+                                );
+                                const isOriginalDifferent = event.currency !== displayCurrency;
 
                                 return (
                                     <motion.div
@@ -99,11 +112,18 @@ export function DayEventsSheet({ isOpen, onClose, date, events }: DayEventsSheet
                                         </div>
                                         <div className="text-right">
                                             <p className="text-lg font-bold text-gray-900">
-                                                {formatCurrency(event.amount)}
+                                                {formatCurrencyCompact(convertedAmount, displayCurrency)}
                                             </p>
-                                            <p className="text-xs text-gray-500">
-                                                {event.billingCycle === 'MONTHLY' ? t('form.monthly') : t('form.yearly')}
-                                            </p>
+                                            <div className="flex flex-col items-end">
+                                                {isOriginalDifferent && (
+                                                    <span className="text-xs text-gray-400">
+                                                        {formatCurrencyCompact(event.amount, event.currency)}
+                                                    </span>
+                                                )}
+                                                <p className="text-xs text-gray-500">
+                                                    {event.billingCycle === 'MONTHLY' ? t('form.monthly') : t('form.yearly')}
+                                                </p>
+                                            </div>
                                         </div>
                                     </motion.div>
                                 );

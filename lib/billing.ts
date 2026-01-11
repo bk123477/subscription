@@ -21,6 +21,7 @@ export interface PaymentEvent {
     category: Category;
     date: Date;
     amount: number;
+    currency: 'USD' | 'KRW';
     billingCycle: 'MONTHLY' | 'YEARLY';
 }
 
@@ -98,6 +99,7 @@ export function generatePaymentEvents(
                 category: sub.category,
                 date: currentDate,
                 amount: sub.amount,
+                currency: sub.currency,
                 billingCycle: sub.billingCycle
             });
         }

@@ -19,8 +19,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PaymentEvent } from '@/lib/billing';
 import { useTranslation } from '@/lib/i18n';
 import { categoryConfig } from '@/lib/theme';
-import { formatCurrency, getDateLocale } from '@/lib/format';
+import { formatCurrencyCompact, getDateLocale } from '@/lib/format';
 import { Button } from '@/components/ui/button';
+import { useFx } from '@/lib/FxContext';
+import { convertCurrency } from '@/lib/fx';
 
 interface CalendarViewProps {
     events: PaymentEvent[];
@@ -29,6 +31,7 @@ interface CalendarViewProps {
 
 export function CalendarView({ events, onDayClick }: CalendarViewProps) {
     const { t, language } = useTranslation();
+    const { displayCurrency, fxRates } = useFx();
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
     const weekStartsOn = language === 'ko' ? 1 : 0;
@@ -115,7 +118,9 @@ export function CalendarView({ events, onDayClick }: CalendarViewProps) {
 
                     // Get unique categories for this day
                     const categories = [...new Set(dayEvents.map((e) => e.category))];
-                    const totalAmount = dayEvents.reduce((sum, e) => sum + e.amount, 0);
+                    const totalAmount = dayEvents.reduce((sum, e) => {
+                        return sum + convertCurrency(e.amount, e.currency, displayCurrency, fxRates);
+                    }, 0);
 
                     return (
                         <motion.button
@@ -152,10 +157,10 @@ export function CalendarView({ events, onDayClick }: CalendarViewProps) {
                                         ))}
                                     </div>
                                     {/* Event count or amount */}
-                                    <div className="text-xs text-center text-gray-600 font-medium">
+                                    <div className="text-[10px] text-center text-gray-600 font-medium truncate px-0.5">
                                         {dayEvents.length > 1
                                             ? `${dayEvents.length}`
-                                            : formatCurrency(totalAmount).replace('$', '')}
+                                            : formatCurrencyCompact(totalAmount, displayCurrency)}
                                     </div>
                                 </div>
                             )}
