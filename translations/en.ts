@@ -1,0 +1,137 @@
+export const en = {
+  // App
+  'app.title': 'Subscape',
+
+  // Navigation
+  'nav.home': 'Home',
+  'nav.schedule': 'Schedule',
+  'nav.manage': 'Manage',
+
+  // Home
+  'home.monthlyTotal': 'Monthly Average',
+  'home.monthlyHint': 'Yearly plans prorated by 12 months',
+  'home.activeSubscriptions': 'active subscriptions',
+  'home.todayLabel': 'Today',
+  'home.dashboardView': 'Dashboard View',
+  'home.view.landscape': 'Landscape',
+  'home.view.timeWheel': 'Time Wheel',
+  'home.view.minimal': 'Minimal',
+  'home.view.subtitle.landscape': 'Category terrain overview',
+  'home.view.subtitle.timeWheel': 'Payments by date',
+  'home.view.subtitle.minimal': 'Clean totals and bars',
+  'home.nextPayment': 'Next Payment',
+  'home.noUpcomingPayments': 'No upcoming payments',
+  'home.timeWheel.legend': 'Legend',
+
+  // Categories
+  'category.ai': 'AI',
+  'category.entertain': 'Entertain',
+  'category.membership': 'Member',
+  'category.other': 'Other',
+
+  // Manage
+  'manage.addSubscription': 'Add Subscription',
+  'manage.editSubscription': 'Edit Subscription',
+  'manage.delete': 'Delete',
+  'manage.deleteConfirm': 'Are you sure you want to delete this subscription?',
+  'manage.search': 'Search subscriptions...',
+  'manage.sortBy': 'Sort by',
+  'manage.sortAmount': 'Amount',
+  'manage.sortName': 'Name',
+  'manage.sortNextPayment': 'Next Payment',
+  'manage.sortCategory': 'Category',
+
+  // Form
+  'form.name': 'Name',
+  'form.namePlaceholder': 'Netflix, Spotify, etc.',
+  'form.amount': 'Amount',
+  'form.category': 'Category',
+  'form.billingCycle': 'Billing Cycle',
+  'form.monthly': 'Monthly',
+  'form.yearly': 'Yearly',
+  'form.billingDay': 'Billing Day',
+  'form.billingMonth': 'Billing Month',
+  'form.notes': 'Notes',
+  'form.notesPlaceholder': 'Optional notes...',
+  'form.save': 'Save',
+  'form.cancel': 'Cancel',
+  'form.required': 'This field is required',
+  'form.currency': 'Currency',
+
+  // Schedule
+  'schedule.upcomingPayments': 'Upcoming Payments',
+  'schedule.listView': 'List',
+  'schedule.calendarView': 'Calendar',
+  'schedule.today': 'Today',
+  'schedule.thisWeek': 'This Week',
+  'schedule.thisMonth': 'This Month',
+  'schedule.later': 'Later',
+  'schedule.noEvents': 'No payments in this period',
+
+  // Empty states
+  'empty.noSubscriptions': 'No subscriptions yet',
+  'empty.addFirst': 'Add your first subscription to get started',
+  'empty.noResults': 'No subscriptions found',
+
+  // Settings
+  'settings.title': 'Settings',
+  'settings.language': 'Language',
+  'settings.seedDemo': 'Load Demo Data',
+  'settings.resetData': 'Reset All Data',
+  'settings.resetConfirm': 'This will delete all your subscriptions. Are you sure?',
+  'settings.english': 'English',
+  'settings.korean': '한국어',
+
+  // Months
+  'month.1': 'Jan',
+  'month.2': 'Feb',
+  'month.3': 'Mar',
+  'month.4': 'Apr',
+  'month.5': 'May',
+  'month.6': 'Jun',
+  'month.7': 'Jul',
+  'month.8': 'Aug',
+  'month.9': 'Sep',
+  'month.10': 'Oct',
+  'month.11': 'Nov',
+  'month.12': 'Dec',
+
+  // Days of week
+  'day.sun': 'S',
+  'day.mon': 'M',
+  'day.tue': 'T',
+  'day.wed': 'W',
+  'day.thu': 'T',
+  'day.fri': 'F',
+  'day.sat': 'S',
+
+  // Common
+  'common.perMonth': '/mo',
+  'common.perYear': '/yr',
+  'common.payments': 'payments',
+  'common.confirm': 'Confirm',
+  'common.close': 'Close',
+  'common.items': 'items',
+  'common.total': 'Total',
+
+  // Currency
+  'currency.USD': 'USD',
+  'currency.KRW': 'KRW',
+  'currency.usd.symbol': '$',
+  'currency.krw.symbol': '₩',
+
+  // FX
+  'fx.status': 'FX Rate',
+  'fx.rate': '1 USD = {rate} KRW',
+  'fx.updated': 'Updated {date}',
+  'fx.source': 'Source: {source}',
+  'fx.unavailable': 'FX unavailable',
+  'fx.showingOriginal': 'Showing original currency',
+  'fx.refresh': 'Refresh',
+  'fx.refreshing': 'Refreshing...',
+  'fx.cooldown': 'Wait {seconds}s',
+  'fx.converted': 'Converted',
+  'fx.original': 'Original: {amount}',
+} as const;
+
+export type TranslationKey = keyof typeof en;
