@@ -24,6 +24,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useScrollLock } from '@/lib/useScrollLock';
 
 interface SubscriptionFormModalProps {
     isOpen: boolean;
@@ -44,6 +45,7 @@ export function SubscriptionFormModal({
 }: SubscriptionFormModalProps) {
     const { t, language } = useTranslation();
     const isEditing = !!subscription;
+    const { lockScroll, unlockScroll } = useScrollLock();
 
     const [name, setName] = useState('');
     const [category, setCategory] = useState<Category>('OTHER');
@@ -56,6 +58,14 @@ export function SubscriptionFormModal({
     const [isLoading, setIsLoading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [errors, setErrors] = useState<{ name?: string; amount?: string }>({});
+
+    useEffect(() => {
+        if (isOpen) {
+            lockScroll();
+        } else {
+            unlockScroll();
+        }
+    }, [isOpen, lockScroll, unlockScroll]);
 
     // Reset form when subscription changes
     useEffect(() => {
@@ -160,8 +170,7 @@ export function SubscriptionFormModal({
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
                             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                            className="w-full max-w-lg bg-white rounded-t-3xl max-h-[90vh] overflow-auto"
-                            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+                            className="w-full max-w-lg bg-white rounded-t-3xl max-h-[90vh] sheet-scroll"
                         >
                             {/* Header */}
                             <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-gray-100 bg-white">
@@ -177,7 +186,7 @@ export function SubscriptionFormModal({
                             </div>
 
                             {/* Form */}
-                            <div className="p-4 space-y-5">
+                            <div className="p-4 space-y-5 pb-40">
                                 {/* Name */}
                                 <div className="space-y-2">
                                     <Label htmlFor="name">{t('form.name')}</Label>
@@ -230,8 +239,8 @@ export function SubscriptionFormModal({
                                         <button
                                             onClick={() => setCurrency('USD')}
                                             className={`p-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${currency === 'USD'
-                                                    ? 'bg-blue-500 text-white'
-                                                    : 'bg-gray-100 text-gray-600'
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-gray-100 text-gray-600'
                                                 }`}
                                         >
                                             <span className="text-lg">$</span>
@@ -240,8 +249,8 @@ export function SubscriptionFormModal({
                                         <button
                                             onClick={() => setCurrency('KRW')}
                                             className={`p-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${currency === 'KRW'
-                                                    ? 'bg-blue-500 text-white'
-                                                    : 'bg-gray-100 text-gray-600'
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-gray-100 text-gray-600'
                                                 }`}
                                         >
                                             <span className="text-lg">₩</span>
@@ -352,7 +361,10 @@ export function SubscriptionFormModal({
                             </div>
 
                             {/* Footer */}
-                            <div className="sticky bottom-0 p-4 border-t border-gray-100 bg-white space-y-3">
+                            <div
+                                className="sticky bottom-0 p-4 border-t border-gray-100 bg-white space-y-3"
+                                style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+                            >
                                 {isEditing && (
                                     <Button
                                         variant="outline"
