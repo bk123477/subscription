@@ -316,7 +316,7 @@ export function SubscriptionFormModal({
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent className="z-[200]">
                                             {billingDays.map((day) => (
                                                 <SelectItem key={day} value={day.toString()}>
                                                     {day}
@@ -337,7 +337,7 @@ export function SubscriptionFormModal({
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
-                                            <SelectContent>
+                                            <SelectContent className="z-[200]">
                                                 {billingMonths.map((month) => (
                                                     <SelectItem key={month} value={month.toString()}>
                                                         {t(`month.${month}` as any)}
