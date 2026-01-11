@@ -1,14 +1,15 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Sparkles, Tv, CreditCard, MoreHorizontal } from 'lucide-react';
+import { useEffect } from 'react';
 import { PaymentEvent } from '@/lib/billing';
 import { formatCurrencyCompact, formatDateMedium } from '@/lib/format';
 import { categoryConfig } from '@/lib/theme';
 import { useTranslation } from '@/lib/i18n';
 import { useFx } from '@/lib/FxContext';
 import { convertCurrency } from '@/lib/fx';
-import { Sparkles, Tv, CreditCard, MoreHorizontal } from 'lucide-react';
+import { useScrollLock } from '@/lib/useScrollLock';
 
 const iconComponents = {
     Sparkles,
@@ -27,6 +28,15 @@ interface DayEventsSheetProps {
 export function DayEventsSheet({ isOpen, onClose, date, events }: DayEventsSheetProps) {
     const { t, language } = useTranslation();
     const { displayCurrency, fxRates } = useFx();
+    const { lockScroll, unlockScroll } = useScrollLock();
+
+    useEffect(() => {
+        if (isOpen) {
+            lockScroll();
+        } else {
+            unlockScroll();
+        }
+    }, [isOpen, lockScroll, unlockScroll]);
 
     const totalAmount = events.reduce((sum, e) => {
         return sum + convertCurrency(e.amount, e.currency, displayCurrency, fxRates);
@@ -47,7 +57,7 @@ export function DayEventsSheet({ isOpen, onClose, date, events }: DayEventsSheet
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                        className="w-full max-w-lg bg-white rounded-t-3xl max-h-[70vh] overflow-auto"
+                        className="w-full max-w-lg bg-white rounded-t-3xl max-h-[70vh] sheet-scroll"
                         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
                     >
                         {/* Header */}
