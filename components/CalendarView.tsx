@@ -23,6 +23,7 @@ import { formatCurrencyCompact, getDateLocale } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { useFx } from '@/lib/FxContext';
 import { convertCurrency } from '@/lib/fx';
+import { MonthPickerModal } from '@/components/MonthPickerModal';
 
 interface CalendarViewProps {
     events: PaymentEvent[];
@@ -33,6 +34,7 @@ export function CalendarView({ events, onDayClick }: CalendarViewProps) {
     const { t, language } = useTranslation();
     const { displayCurrency, fxRates } = useFx();
     const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
 
     const weekStartsOn = language === 'ko' ? 1 : 0;
 
@@ -84,9 +86,14 @@ export function CalendarView({ events, onDayClick }: CalendarViewProps) {
                 >
                     <ChevronLeft size={20} />
                 </Button>
-                <h2 className="text-lg font-semibold text-gray-900">
+
+                <h2
+                    onClick={() => setIsMonthPickerOpen(true)}
+                    className="text-lg font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 px-3 py-1 rounded-full transition-colors active:scale-95"
+                >
                     {format(currentMonth, 'MMMM yyyy', { locale: getDateLocale(language) })}
                 </h2>
+
                 <Button
                     variant="ghost"
                     size="icon"
@@ -168,6 +175,14 @@ export function CalendarView({ events, onDayClick }: CalendarViewProps) {
                     );
                 })}
             </div>
+
+            <MonthPickerModal
+                isOpen={isMonthPickerOpen}
+                onClose={() => setIsMonthPickerOpen(false)}
+                currentDate={currentMonth}
+                onSelect={setCurrentMonth}
+            />
         </div>
     );
 }
+

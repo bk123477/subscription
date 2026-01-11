@@ -40,6 +40,12 @@ export const en = {
   'manage.sortName': 'Name',
   'manage.sortNextPayment': 'Next Payment',
   'manage.sortCategory': 'Category',
+  'manage.endSubscription': 'End Subscription',
+  'manage.reactivate': 'Reactivate',
+  'manage.deletePermanent': 'Delete Permanently',
+  'manage.endConfirm': 'End subscription? History will be kept.',
+  'manage.permanentDeleteConfirm': 'Permanently delete? History will be lost.',
+  'manage.ended': 'Ended',
 
   // Form
   'form.name': 'Name',
@@ -67,6 +73,7 @@ export const en = {
   'schedule.thisMonth': 'This Month',
   'schedule.later': 'Later',
   'schedule.noEvents': 'No payments in this period',
+  'calendar.selectMonth': 'Select Month',
 
   // Empty states
   'empty.noSubscriptions': 'No subscriptions yet',
@@ -132,6 +139,13 @@ export const en = {
   'fx.cooldown': 'Wait {seconds}s',
   'fx.converted': 'Converted',
   'fx.original': 'Original: {amount}',
+  // YTD
+  'ytd.title': 'YTD Spend',
+  'ytd.range': 'Jan 1 – Today',
+  'ytd.total': 'Total YTD Paid',
+  'ytd.byCategory': 'Spend by Category',
+  'ytd.note': 'Calculated from scheduled billing dates',
+  'nav.ytd': 'YTD',
 } as const;
 
 export type TranslationKey = keyof typeof en;

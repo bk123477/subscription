@@ -36,7 +36,8 @@ export function SubscriptionRow({
         <motion.button
             onClick={onClick}
             whileTap={{ scale: 0.98 }}
-            className="w-full flex items-center justify-between p-4 rounded-xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all"
+            className={`w-full flex items-center justify-between p-4 rounded-xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all ${subscription.endedAt ? 'opacity-60 grayscale' : ''
+                }`}
         >
             <div className="flex items-center gap-3">
                 {showCategory && (
@@ -46,7 +47,16 @@ export function SubscriptionRow({
                     />
                 )}
                 <div className="text-left">
-                    <p className="font-medium text-gray-900">{subscription.name}</p>
+                    <div className="flex items-center gap-2">
+                        <p className={`font-medium text-gray-900 ${subscription.endedAt ? 'line-through decoration-gray-400' : ''}`}>
+                            {subscription.name}
+                        </p>
+                        {subscription.endedAt && (
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-gray-300 text-gray-500">
+                                {t('manage.ended')}
+                            </Badge>
+                        )}
+                    </div>
                     {subscription.notes && (
                         <p className="text-xs text-gray-500 truncate max-w-[150px]">
                             {subscription.notes}

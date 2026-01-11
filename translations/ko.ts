@@ -40,6 +40,12 @@ export const ko = {
     'manage.sortName': '이름',
     'manage.sortNextPayment': '다음 결제일',
     'manage.sortCategory': '카테고리',
+    'manage.endSubscription': '구독 종료',
+    'manage.reactivate': '구독 재개',
+    'manage.deletePermanent': '영구 삭제',
+    'manage.endConfirm': '구독을 종료하시겠습니까? 기록은 보존됩니다.',
+    'manage.permanentDeleteConfirm': '영구 삭제하시겠습니까? 모든 기록이 사라집니다.',
+    'manage.ended': '종료됨',
 
     // Form
     'form.name': '이름',
@@ -67,6 +73,7 @@ export const ko = {
     'schedule.thisMonth': '이번 달',
     'schedule.later': '이후',
     'schedule.noEvents': '결제 예정 없음',
+    'calendar.selectMonth': '월 선택',
 
     // Empty states
     'empty.noSubscriptions': '구독 없음',
@@ -132,4 +139,11 @@ export const ko = {
     'fx.cooldown': '{seconds}초',
     'fx.converted': '환산됨',
     'fx.original': '원래: {amount}',
+    // YTD
+    'ytd.title': '올해 누적 결제',
+    'ytd.range': '1월 1일 – 오늘',
+    'ytd.total': '총 누적 금액',
+    'ytd.byCategory': '카테고리별 누적',
+    'ytd.note': '예정된 결제일을 기준으로 계산됨',
+    'nav.ytd': '누적',
 } as const;

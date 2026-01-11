@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
-import { Category, BillingCycle, Currency, Subscription, addSubscription, updateSubscription, deleteSubscription } from '@/lib/db';
+import { Category, BillingCycle, Currency, Subscription, addSubscription, updateSubscription, deleteSubscription, endSubscription, reactivateSubscription } from '@/lib/db';
 import { categoryConfig, colors } from '@/lib/theme';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -162,7 +162,7 @@ export function SubscriptionFormModal({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm"
+                        className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm"
                         onClick={(e) => e.target === e.currentTarget && onClose()}
                     >
                         <motion.div
@@ -366,14 +366,48 @@ export function SubscriptionFormModal({
                                 style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
                             >
                                 {isEditing && (
-                                    <Button
-                                        variant="outline"
-                                        className="w-full text-red-500 border-red-200 hover:bg-red-50"
-                                        onClick={() => setShowDeleteConfirm(true)}
-                                    >
-                                        <Trash2 size={18} className="mr-2" />
-                                        {t('manage.delete')}
-                                    </Button>
+                                    <div className="flex flex-col gap-2 mb-2">
+                                        {!subscription.endedAt ? (
+                                            <Button
+                                                variant="outline"
+                                                className="w-full text-red-500 border-red-200 hover:bg-red-50"
+                                                onClick={() => {
+                                                    if (confirm(t('manage.endConfirm'))) {
+                                                        endSubscription(subscription.id);
+                                                        onClose();
+                                                    }
+                                                }}
+                                            >
+                                                <Trash2 size={18} className="mr-2" />
+                                                {t('manage.endSubscription')}
+                                            </Button>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full text-blue-500 border-blue-200 hover:bg-blue-50"
+                                                    onClick={() => {
+                                                        reactivateSubscription(subscription.id);
+                                                        onClose();
+                                                    }}
+                                                >
+                                                    {t('manage.reactivate')}
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    className="w-full text-xs text-gray-400 hover:text-red-500"
+                                                    onClick={() => {
+                                                        if (confirm(t('manage.permanentDeleteConfirm'))) {
+                                                            deleteSubscription(subscription.id);
+                                                            onClose();
+                                                        }
+                                                    }}
+                                                >
+                                                    {t('manage.deletePermanent')}
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                                 <div className="flex gap-3">
                                     <Button

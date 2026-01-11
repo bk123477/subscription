@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Calendar, Settings } from 'lucide-react';
+import { Home, Calendar, Settings, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from '@/lib/i18n';
 import { colors } from '@/lib/theme';
@@ -9,6 +9,7 @@ import { colors } from '@/lib/theme';
 const tabs = [
     { path: '/home', icon: Home, labelKey: 'nav.home' as const },
     { path: '/schedule', icon: Calendar, labelKey: 'nav.schedule' as const },
+    { path: '/ytd', icon: TrendingUp, labelKey: 'nav.ytd' as const },
     { path: '/manage', icon: Settings, labelKey: 'nav.manage' as const },
 ];
 

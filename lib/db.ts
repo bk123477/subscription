@@ -18,6 +18,7 @@ export interface Subscription {
     isActive: boolean;
     createdAt: string; // ISO string
     updatedAt: string; // ISO string
+    endedAt?: string | null; // ISO string, if ended
 }
 
 export interface Settings {
@@ -77,6 +78,27 @@ class SubscriptionDB extends Dexie {
                 }
             });
         });
+
+        // Version 4: Add endedAt to subscriptions
+        this.version(4).stores({
+            subscriptions: 'id, name, category, billingCycle, isActive, createdAt, endedAt',
+            settings: 'id',
+            fxRateCache: 'id'
+        }).upgrade(tx => {
+            return tx.table('subscriptions').toCollection().modify(sub => {
+                // Ensure createdAt exists (migration default: now)
+                if (!sub.createdAt) {
+                    sub.createdAt = new Date().toISOString();
+                }
+                // Initialize endedAt
+                if (sub.endedAt === undefined) {
+                    sub.endedAt = null;
+                }
+                // If isActive is false but no endedAt, assume ended now? 
+                // Or keep as is? User prompt says "endedAt = null" for migration.
+                // We'll stick to endedAt = null.
+            });
+        });
     }
 }
 
@@ -109,7 +131,7 @@ export async function initializeSettings(): Promise<Settings> {
 }
 
 // Subscription CRUD operations
-export async function addSubscription(sub: Omit<Subscription, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+export async function addSubscription(sub: Omit<Subscription, 'id' | 'createdAt' | 'updatedAt' | 'endedAt'>): Promise<string> {
     const { v4: uuidv4 } = await import('uuid');
     const now = new Date().toISOString();
     const id = uuidv4();
@@ -117,8 +139,10 @@ export async function addSubscription(sub: Omit<Subscription, 'id' | 'createdAt'
     await db.subscriptions.add({
         ...sub,
         id,
+        isActive: true, // Default to true
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        endedAt: null
     });
 
     return id;
@@ -131,6 +155,36 @@ export async function updateSubscription(id: string, updates: Partial<Omit<Subsc
     });
 }
 
+/**
+ * End a subscription (Soft Delete)
+ * Sets endedAt and marks as inactive
+ */
+export async function endSubscription(id: string): Promise<void> {
+    const now = new Date().toISOString();
+    await db.subscriptions.update(id, {
+        isActive: false,
+        endedAt: now,
+        updatedAt: now
+    });
+}
+
+/**
+ * Reactivate a subscription
+ * Clears endedAt and marks as active
+ */
+export async function reactivateSubscription(id: string): Promise<void> {
+    const now = new Date().toISOString();
+    await db.subscriptions.update(id, {
+        isActive: true,
+        endedAt: null,
+        updatedAt: now
+    });
+}
+
+/**
+ * Permanently delete a subscription (Hard Delete)
+ * Removes record from database
+ */
 export async function deleteSubscription(id: string): Promise<void> {
     await db.subscriptions.delete(id);
 }
