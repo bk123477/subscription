@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n";
 import { FxProvider } from "@/lib/FxContext";
-import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,7 +60,7 @@ export default function RootLayout({
       >
         <I18nProvider>
           <FxProvider>
-            <ServiceWorkerRegistration />
+            {/* <ServiceWorkerRegistration /> - Handled by next-pwa */}
             <div id="app-wrapper">
               {children}
             </div>
