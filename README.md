@@ -18,6 +18,7 @@
 
 ---
 
+<a name="features"></a>
 ## ✨ Features
 
 ### 📊 Multiple Dashboard Views
@@ -54,6 +55,7 @@
 
 ---
 
+<a name="installation"></a>
 ## 📦 Installation
 
 ### Prerequisites
@@ -106,6 +108,7 @@ The app will appear on your home screen with the Subscape icon!
 
 ---
 
+<a name="tech-stack"></a>
 ## 🛠️ Tech Stack
 
 | Category | Technology |
