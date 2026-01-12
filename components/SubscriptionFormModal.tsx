@@ -37,6 +37,8 @@ const categories: Category[] = ['AI', 'ENTERTAIN', 'MEMBERSHIP', 'OTHER'];
 const billingDays = Array.from({ length: 31 }, (_, i) => i + 1);
 const billingMonths = Array.from({ length: 12 }, (_, i) => i + 1);
 
+type SubscriptionType = 'MONTHLY' | 'YEARLY' | 'TRIAL';
+
 export function SubscriptionFormModal({
     isOpen,
     onClose,
@@ -51,13 +53,17 @@ export function SubscriptionFormModal({
     const [category, setCategory] = useState<Category>('OTHER');
     const [amount, setAmount] = useState('');
     const [currency, setCurrency] = useState<Currency>('USD');
+    const [contactType, setContactType] = useState<SubscriptionType>('MONTHLY');
+    // Using internal 'billingCycle' state for the *result* or *renewal* cycle
     const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY');
+
     const [billingDay, setBillingDay] = useState(1);
     const [billingMonth, setBillingMonth] = useState(1);
     const [notes, setNotes] = useState('');
+    const [freeUntil, setFreeUntil] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [errors, setErrors] = useState<{ name?: string; amount?: string }>({});
+    const [errors, setErrors] = useState<{ name?: string; amount?: string; freeUntil?: string }>({});
 
     useEffect(() => {
         if (isOpen) {
@@ -74,25 +80,48 @@ export function SubscriptionFormModal({
             setCategory(subscription.category);
             setAmount(subscription.amount.toString());
             setCurrency(subscription.currency || 'USD');
-            setBillingCycle(subscription.billingCycle);
             setBillingDay(subscription.billingDay);
             setBillingMonth(subscription.billingMonth ?? 1);
             setNotes(subscription.notes ?? '');
+
+            // Determine type
+            if (subscription.freeUntil) {
+                setContactType('TRIAL');
+                setFreeUntil(subscription.freeUntil.split('T')[0]);
+                setBillingCycle(subscription.billingCycle); // Renewal cycle
+            } else {
+                setContactType(subscription.billingCycle === 'MONTHLY' ? 'MONTHLY' : 'YEARLY');
+                setBillingCycle(subscription.billingCycle);
+                setFreeUntil('');
+            }
         } else {
+            // Defaults
             setName('');
             setCategory('OTHER');
             setAmount('');
             setCurrency('USD');
+            setContactType('MONTHLY');
             setBillingCycle('MONTHLY');
             setBillingDay(1);
             setBillingMonth(1);
             setNotes('');
+            setFreeUntil('');
         }
         setErrors({});
     }, [subscription, isOpen]);
 
+    // Update billing day when freeUntil changes (if in Trial mode)
+    useEffect(() => {
+        if (contactType === 'TRIAL' && freeUntil) {
+            const parts = freeUntil.split('-');
+            if (parts.length === 3) {
+                setBillingDay(parseInt(parts[2]));
+            }
+        }
+    }, [freeUntil, contactType]);
+
     const validate = (): boolean => {
-        const newErrors: { name?: string; amount?: string } = {};
+        const newErrors: { name?: string; amount?: string; freeUntil?: string } = {};
 
         if (!name.trim()) {
             newErrors.name = t('form.required');
@@ -100,6 +129,10 @@ export function SubscriptionFormModal({
 
         if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
             newErrors.amount = t('form.required');
+        }
+
+        if (contactType === 'TRIAL' && !freeUntil) {
+            newErrors.freeUntil = t('form.required');
         }
 
         setErrors(newErrors);
@@ -111,15 +144,28 @@ export function SubscriptionFormModal({
 
         setIsLoading(true);
         try {
+            // Determine final billing cycle and freeUntil
+            let finalBillingCycle: BillingCycle = 'MONTHLY';
+            let finalFreeUntil: string | null = null;
+
+            if (contactType === 'TRIAL') {
+                finalBillingCycle = billingCycle; // The renewal cycle selected
+                finalFreeUntil = new Date(freeUntil).toISOString();
+            } else {
+                finalBillingCycle = contactType === 'MONTHLY' ? 'MONTHLY' : 'YEARLY';
+                finalFreeUntil = null;
+            }
+
             const data = {
                 name: name.trim(),
                 category,
                 amount: parseFloat(amount),
                 currency,
-                billingCycle,
+                billingCycle: finalBillingCycle,
                 billingDay,
-                billingMonth: billingCycle === 'YEARLY' ? billingMonth : undefined,
+                billingMonth: finalBillingCycle === 'YEARLY' ? billingMonth : undefined,
                 notes: notes.trim() || undefined,
+                freeUntil: finalFreeUntil,
                 isActive: true,
             };
 
@@ -232,132 +278,204 @@ export function SubscriptionFormModal({
                                     </div>
                                 </div>
 
-                                {/* Currency */}
-                                <div className="space-y-2">
-                                    <Label>{t('form.currency')}</Label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button
-                                            onClick={() => setCurrency('USD')}
-                                            className={`p-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${currency === 'USD'
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-100 text-gray-600'
-                                                }`}
-                                        >
-                                            <span className="text-lg">$</span>
-                                            <span>USD</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setCurrency('KRW')}
-                                            className={`p-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${currency === 'KRW'
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-100 text-gray-600'
-                                                }`}
-                                        >
-                                            <span className="text-lg">₩</span>
-                                            <span>KRW</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Amount */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="amount">{t('form.amount')}</Label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                            {currency === 'KRW' ? '₩' : '$'}
-                                        </span>
-                                        <Input
-                                            id="amount"
-                                            type="number"
-                                            step={currency === 'KRW' ? '100' : '0.01'}
-                                            min="0"
-                                            value={amount}
-                                            onChange={(e) => setAmount(e.target.value)}
-                                            className={`pl-7 ${errors.amount ? 'border-red-300' : ''}`}
-                                        />
-                                    </div>
-                                    {errors.amount && (
-                                        <p className="text-xs text-red-500">{errors.amount}</p>
-                                    )}
-                                </div>
-
-                                {/* Billing Cycle */}
+                                {/* Type Selector */}
                                 <div className="space-y-2">
                                     <Label>{t('form.billingCycle')}</Label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button
-                                            onClick={() => setBillingCycle('MONTHLY')}
-                                            className={`p-3 rounded-xl font-medium transition-all ${billingCycle === 'MONTHLY'
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-100 text-gray-600'
-                                                }`}
-                                        >
-                                            {t('form.monthly')}
-                                        </button>
-                                        <button
-                                            onClick={() => setBillingCycle('YEARLY')}
-                                            className={`p-3 rounded-xl font-medium transition-all ${billingCycle === 'YEARLY'
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-100 text-gray-600'
-                                                }`}
-                                        >
-                                            {t('form.yearly')}
-                                        </button>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {(['MONTHLY', 'YEARLY', 'TRIAL'] as const).map((type) => (
+                                            <button
+                                                key={type}
+                                                onClick={() => setContactType(type)}
+                                                className={`p-3 rounded-xl font-medium transition-all text-sm ${contactType === type
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-gray-100 text-gray-600'
+                                                    }`}
+                                            >
+                                                {type === 'TRIAL' ? t('form.freeTrial') : t(`form.${type.toLowerCase()}` as any)}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
-                                {/* Billing Day */}
-                                <div className="space-y-2">
-                                    <Label>{t('form.billingDay')}</Label>
-                                    <Select
-                                        value={billingDay.toString()}
-                                        onValueChange={(v) => setBillingDay(parseInt(v))}
+                                {/* Render based on Type */}
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={contactType}
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -5 }}
+                                        className="space-y-5"
                                     >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent className="z-[200]">
-                                            {billingDays.map((day) => (
-                                                <SelectItem key={day} value={day.toString()}>
-                                                    {day}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                        {contactType === 'TRIAL' ? (
+                                            <>
+                                                {/* Free Trial End Date */}
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="freeUntil">{t('form.freeTrialEnd')}</Label>
+                                                    <Input
+                                                        id="freeUntil"
+                                                        type="date"
+                                                        value={freeUntil}
+                                                        onChange={(e) => setFreeUntil(e.target.value)}
+                                                        className={`w-full block ${errors.freeUntil ? 'border-red-300' : ''}`}
+                                                    />
+                                                    <p className="text-xs text-gray-500">
+                                                        {t('form.billingDay')} will be set to this date.
+                                                    </p>
+                                                    {errors.freeUntil && (
+                                                        <p className="text-xs text-red-500">{errors.freeUntil}</p>
+                                                    )}
+                                                </div>
 
-                                {/* Billing Month (only for YEARLY) */}
-                                {billingCycle === 'YEARLY' && (
-                                    <div className="space-y-2">
-                                        <Label>{t('form.billingMonth')}</Label>
-                                        <Select
-                                            value={billingMonth.toString()}
-                                            onValueChange={(v) => setBillingMonth(parseInt(v))}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent className="z-[200]">
-                                                {billingMonths.map((month) => (
-                                                    <SelectItem key={month} value={month.toString()}>
-                                                        {t(`month.${month}` as any)}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
+                                                <div className="p-4 bg-gray-50 rounded-xl space-y-4 border border-gray-100">
+                                                    <h3 className="text-sm font-semibold text-gray-900">After Trial Ends</h3>
+
+                                                    {/* Renewal Cycle */}
+                                                    <div className="space-y-2">
+                                                        <Label>{t('form.billingCycle')}</Label>
+                                                        <div className="flex bg-white rounded-lg p-1 border">
+                                                            {(['MONTHLY', 'YEARLY'] as const).map((cycle) => (
+                                                                <button
+                                                                    key={cycle}
+                                                                    onClick={() => setBillingCycle(cycle)}
+                                                                    className={`flex-1 py-1.5 text-sm rounded-md transition-all ${billingCycle === cycle
+                                                                        ? 'bg-gray-100 font-semibold text-gray-900'
+                                                                        : 'text-gray-500 hover:text-gray-900'
+                                                                        }`}
+                                                                >
+                                                                    {t(`form.${cycle.toLowerCase()}` as any)}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Renewal Amount with Currency */}
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="amount">{t('form.amount')}</Label>
+                                                        <div className="flex gap-2">
+                                                            <div className="flex rounded-lg overflow-hidden border">
+                                                                <button
+                                                                    onClick={() => setCurrency('USD')}
+                                                                    className={`px-3 py-2 text-sm font-medium transition-colors ${currency === 'USD' ? 'bg-blue-50 text-blue-600' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                                                                >
+                                                                    USD
+                                                                </button>
+                                                                <div className="w-px bg-gray-100" />
+                                                                <button
+                                                                    onClick={() => setCurrency('KRW')}
+                                                                    className={`px-3 py-2 text-sm font-medium transition-colors ${currency === 'KRW' ? 'bg-blue-50 text-blue-600' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                                                                >
+                                                                    KRW
+                                                                </button>
+                                                            </div>
+                                                            <div className="relative flex-1">
+                                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                                                    {currency === 'KRW' ? '₩' : '$'}
+                                                                </span>
+                                                                <Input
+                                                                    id="amount"
+                                                                    type="number"
+                                                                    step={currency === 'KRW' ? '100' : '0.01'}
+                                                                    value={amount}
+                                                                    onChange={(e) => setAmount(e.target.value)}
+                                                                    className={`pl-7 bg-white ${errors.amount ? 'border-red-300' : ''}`}
+                                                                    placeholder="0.00"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {/* Amount and Currency */}
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="amount">{t('form.amount')}</Label>
+                                                    <div className="flex gap-2">
+                                                        <div className="flex rounded-lg overflow-hidden border border-gray-200">
+                                                            <button
+                                                                onClick={() => setCurrency('USD')}
+                                                                className={`px-3 py-2 text-sm font-medium transition-colors ${currency === 'USD' ? 'bg-blue-50 text-blue-600' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                                                            >
+                                                                USD
+                                                            </button>
+                                                            <div className="w-px bg-gray-200" />
+                                                            <button
+                                                                onClick={() => setCurrency('KRW')}
+                                                                className={`px-3 py-2 text-sm font-medium transition-colors ${currency === 'KRW' ? 'bg-blue-50 text-blue-600' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                                                            >
+                                                                KRW
+                                                            </button>
+                                                        </div>
+                                                        <div className="relative flex-1">
+                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                                                {currency === 'KRW' ? '₩' : '$'}
+                                                            </span>
+                                                            <Input
+                                                                id="amount"
+                                                                type="number"
+                                                                step={currency === 'KRW' ? '100' : '0.01'}
+                                                                value={amount}
+                                                                onChange={(e) => setAmount(e.target.value)}
+                                                                className={`pl-7 ${errors.amount ? 'border-red-300' : ''}`}
+                                                                placeholder="0.00"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Billing Day */}
+                                                <div className="space-y-2">
+                                                    <Label>{t('form.billingDay')}</Label>
+                                                    <Select
+                                                        value={billingDay.toString()}
+                                                        onValueChange={(v) => setBillingDay(parseInt(v))}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="z-[200]">
+                                                            {billingDays.map((day) => (
+                                                                <SelectItem key={day} value={day.toString()}>
+                                                                    {day}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                {/* Billing Month (Yearly only) */}
+                                                {contactType === 'YEARLY' && (
+                                                    <div className="space-y-2">
+                                                        <Label>{t('form.billingMonth')}</Label>
+                                                        <Select
+                                                            value={billingMonth.toString()}
+                                                            onValueChange={(v) => setBillingMonth(parseInt(v))}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="z-[200]">
+                                                                {billingMonths.map((month) => (
+                                                                    <SelectItem key={month} value={month.toString()}>
+                                                                        {t(`month.${month}` as any)}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                    </motion.div>
+                                </AnimatePresence>
 
                                 {/* Notes */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="notes">{t('form.notes')}</Label>
-                                    <Input
-                                        id="notes"
-                                        value={notes}
-                                        onChange={(e) => setNotes(e.target.value)}
-                                        placeholder={t('form.notesPlaceholder')}
-                                    />
-                                </div>
+                                <Input
+                                    id="notes"
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder={t('form.notesPlaceholder')}
+                                />
                             </div>
 
                             {/* Footer */}

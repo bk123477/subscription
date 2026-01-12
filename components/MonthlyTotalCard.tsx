@@ -50,10 +50,6 @@ export function MonthlyTotalCard({ total, subscriptionCount }: MonthlyTotalCardP
                     {formatCurrency(total, displayCurrency)}
                 </motion.p>
 
-                {/* Hint text */}
-                <p className="text-xs text-gray-500 mt-2">
-                    {t('home.monthlyHint')}
-                </p>
 
                 {/* Bottom row: subscription count + today's date */}
                 <div className="mt-4 flex items-center justify-between">

@@ -51,6 +51,11 @@ export function SubscriptionRow({
                         <p className={`font-medium text-gray-900 ${subscription.endedAt ? 'line-through decoration-gray-400' : ''}`}>
                             {subscription.name}
                         </p>
+                        {subscription.freeUntil && new Date(subscription.freeUntil) > new Date() && (
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-blue-300 text-blue-500 bg-blue-50">
+                                {t('form.freeTrial')}
+                            </Badge>
+                        )}
                         {subscription.endedAt && (
                             <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-gray-300 text-gray-500">
                                 {t('manage.ended')}

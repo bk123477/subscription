@@ -11,7 +11,8 @@ import {
     isSameDay,
     startOfDay,
     addMonths,
-    addYears
+    addYears,
+    parseISO
 } from 'date-fns';
 import { Subscription, Category } from './db';
 
@@ -70,7 +71,7 @@ export function getNextPaymentDate(sub: Subscription, today: Date = new Date()):
         let targetDate = new Date(targetYear, billingMonth, clampedDay);
 
         // If target date is before today, move to next year
-        if (isBefore(targetDate, todayStart)) {
+        if (isBefore(targetDate, todayStart) || isSameDay(targetDate, todayStart)) {
             targetYear += 1;
             clampedDay = clampDayToMonth(targetYear, billingMonth, sub.billingDay);
             targetDate = new Date(targetYear, billingMonth, clampedDay);
@@ -93,12 +94,41 @@ export function generatePaymentEvents(
 
     while (isBefore(currentDate, endDate) || isSameDay(currentDate, endDate)) {
         if (isAfter(currentDate, startDate) || isSameDay(currentDate, startDate)) {
+            let amount = sub.amount;
+            // If there's a free trial, skip events during the trial period entirely
+            // (User requested to only show payments starting from the first paid date)
+            if (sub.freeUntil) {
+                const freeUntilDate = startOfDay(parseISO(sub.freeUntil));
+                if (isBefore(currentDate, freeUntilDate) || isSameDay(currentDate, freeUntilDate)) {
+                    // Check if it's the SAME day as freeUntil?
+                    // Usually freeUntil is the date it ends. The payment ON that day is usually the first payment?
+                    // Or "Free UNTIL X". Does X count as free?
+                    // If Free Until Feb 15.
+                    // Payment Feb 1. (Free).
+                    // Payment Mar 1. (Paid).
+                    // If Free Until Feb 1.
+                    // Payment Feb 1?
+                    // My previous logic: `isBefore(currentDate, freeUntilDate)`.
+                    // If currentDate == freeUntilDate, it was NOT free (amount not 0).
+                    // So if currentDate < freeUntil, we SKIP it.
+                    if (isBefore(currentDate, freeUntilDate)) {
+                        // Skip this event
+                        if (sub.billingCycle === 'MONTHLY') {
+                            currentDate = getNextPaymentDate(sub, addDays(currentDate, 1));
+                        } else {
+                            currentDate = addYears(currentDate, 1);
+                        }
+                        continue;
+                    }
+                }
+            }
+
             events.push({
                 subscriptionId: sub.id,
                 name: sub.name,
                 category: sub.category,
                 date: currentDate,
-                amount: sub.amount,
+                amount: amount,
                 currency: sub.currency,
                 billingCycle: sub.billingCycle
             });

@@ -122,7 +122,7 @@ export function DayEventsSheet({ isOpen, onClose, date, events }: DayEventsSheet
                                         </div>
                                         <div className="text-right">
                                             <p className="text-lg font-bold text-gray-900">
-                                                {formatCurrencyCompact(convertedAmount, displayCurrency)}
+                                                {event.amount === 0 ? 'Free' : formatCurrencyCompact(convertedAmount, displayCurrency)}
                                             </p>
                                             <div className="flex flex-col items-end">
                                                 {isOriginalDifferent && (

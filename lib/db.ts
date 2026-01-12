@@ -19,6 +19,7 @@ export interface Subscription {
     createdAt: string; // ISO string
     updatedAt: string; // ISO string
     endedAt?: string | null; // ISO string, if ended
+    freeUntil?: string | null; // ISO string, date until which payments are 0
 }
 
 export interface Settings {
@@ -99,6 +100,19 @@ class SubscriptionDB extends Dexie {
                 // We'll stick to endedAt = null.
             });
         });
+
+        // Version 5: Add freeUntil to subscriptions
+        this.version(5).stores({
+            subscriptions: 'id, name, category, billingCycle, isActive, createdAt, endedAt, freeUntil',
+            settings: 'id',
+            fxRateCache: 'id'
+        }).upgrade(tx => {
+            return tx.table('subscriptions').toCollection().modify(sub => {
+                if (sub.freeUntil === undefined) {
+                    sub.freeUntil = null;
+                }
+            });
+        });
     }
 }
 
@@ -119,7 +133,7 @@ export async function initializeSettings(): Promise<Settings> {
     const defaultSettings: Settings = {
         id: 1,
         defaultCurrency: 'USD',
-        horizonDays: 60,
+        horizonDays: 365,
         firstDayOfWeek: 0,
         theme: 'pastel',
         language: 'en',
@@ -142,7 +156,8 @@ export async function addSubscription(sub: Omit<Subscription, 'id' | 'createdAt'
         isActive: true, // Default to true
         createdAt: now,
         updatedAt: now,
-        endedAt: null
+        endedAt: null,
+        freeUntil: sub.freeUntil || null
     });
 
     return id;
@@ -209,8 +224,20 @@ export async function getSettings(): Promise<Settings> {
     }
     // Ensure homeDashboardMode exists
     if (!settings.homeDashboardMode) {
+        // Also check horizonDays while we are here
+        if (settings.horizonDays < 365) {
+            await db.settings.update(1, { homeDashboardMode: 'MINIMAL_KPI', horizonDays: 365 });
+            return { ...settings, homeDashboardMode: 'MINIMAL_KPI', horizonDays: 365 };
+        }
         return { ...settings, homeDashboardMode: 'MINIMAL_KPI' };
     }
+
+    // Ensure horizonDays is 365 (Migration for existing users)
+    if (settings.horizonDays < 365) {
+        await db.settings.update(1, { horizonDays: 365 });
+        return { ...settings, horizonDays: 365 };
+    }
+
     return settings;
 }
 

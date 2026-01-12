@@ -3,6 +3,8 @@ import {
     isBefore,
     isSameDay,
     startOfDay,
+    startOfMonth,
+    endOfMonth,
     parseISO,
     addDays
 } from 'date-fns';
@@ -35,15 +37,26 @@ export function monthlyEquivalentAmountConverted(
 
 /**
  * Calculate the total monthly amount for all active subscriptions in display currency
+ * Excludes subscriptions currently in free trial
  */
 export function totalMonthlyAmount(
     subscriptions: Subscription[],
     displayCurrency: Currency,
     fxRates: FxRates
 ): number {
+    const now = startOfDay(new Date());
+
     return subscriptions
         .filter(sub => sub.isActive)
         .reduce((total, sub) => {
+            // Check if currently in free trial
+            if (sub.freeUntil) {
+                const freeUntil = startOfDay(parseISO(sub.freeUntil));
+                // If now is before or same as freeUntil, it's free
+                if (!isAfter(now, freeUntil)) {
+                    return total;
+                }
+            }
             return total + monthlyEquivalentAmountConverted(sub, displayCurrency, fxRates);
         }, 0);
 }
@@ -78,6 +91,14 @@ export function totalYearlyAmount(
     displayCurrency: Currency,
     fxRates: FxRates
 ): number {
+    // Note: This is an annualized run rate, so we typically include all active subs
+    // regardless of temporary free trial status, or we could apply the same logic.
+    // Given the user asked for "Monthly Average" specifically, we'll keep this as run-rate for now
+    // unless requested otherwise, but to be consistent with "Current Spending", let's apply the rule.
+
+    // Actually, Annualized Run Rate usually implies "What is the value of my subscriptions".
+    // "Monthly Average" implies "What is my cash outflow".
+    // I will leave this alone for now as the user only asked about Home Screen Monthly Average.
     return subscriptions
         .filter(sub => sub.isActive)
         .reduce((total, sub) => {
@@ -87,6 +108,7 @@ export function totalYearlyAmount(
 
 /**
  * Get monthly totals grouped by category in display currency
+ * Excludes subscriptions currently in free trial
  */
 export function categoryMonthlyTotals(
     subscriptions: Subscription[],
@@ -100,8 +122,17 @@ export function categoryMonthlyTotals(
         OTHER: 0
     };
 
+    const now = startOfDay(new Date());
+
     for (const sub of subscriptions) {
         if (sub.isActive) {
+            // Check if currently in free trial
+            if (sub.freeUntil) {
+                const freeUntil = startOfDay(parseISO(sub.freeUntil));
+                if (!isAfter(now, freeUntil)) {
+                    continue;
+                }
+            }
             totals[sub.category] += monthlyEquivalentAmountConverted(sub, displayCurrency, fxRates);
         }
     }
@@ -216,8 +247,20 @@ export function calculateYTD(
 
     for (const sub of subscriptions) {
         const occurrences = computeOccurrences(sub, startOfYear, now);
-        const convertedAmount = convertCurrency(sub.amount, sub.currency, displayCurrency, fxRates);
-        total += occurrences.length * convertedAmount;
+
+        // Calculate total for this sub, accounting for free trial
+        let subTotal = 0;
+        const convertedMonthly = convertCurrency(sub.amount, sub.currency, displayCurrency, fxRates);
+        const freeUntilDate = sub.freeUntil ? startOfDay(parseISO(sub.freeUntil)) : null;
+
+        for (const date of occurrences) {
+            if (freeUntilDate && isBefore(date, freeUntilDate)) {
+                continue; // It's free
+            }
+            subTotal += convertedMonthly;
+        }
+
+        total += subTotal;
     }
 
     return total;
@@ -243,8 +286,89 @@ export function calculateYTDBreakdown(
 
     for (const sub of subscriptions) {
         const occurrences = computeOccurrences(sub, startOfYear, now);
+        const convertedMonthly = convertCurrency(sub.amount, sub.currency, displayCurrency, fxRates);
+        const freeUntilDate = sub.freeUntil ? startOfDay(parseISO(sub.freeUntil)) : null;
+
+        let subTotal = 0;
+        for (const date of occurrences) {
+            if (freeUntilDate && isBefore(date, freeUntilDate)) {
+                continue; // It's free
+            }
+            subTotal += convertedMonthly;
+        }
+
+        totals[sub.category] += subTotal;
+    }
+
+    return totals;
+}
+
+/**
+ * Calculate the total payment amount scheduled for the current calendar month
+ * Includes past and future payments within this month.
+ * Excludes free trial periods.
+ */
+export function calculateCurrentMonthTotal(
+    subscriptions: Subscription[],
+    displayCurrency: Currency,
+    fxRates: FxRates
+): number {
+    const now = new Date();
+    const start = startOfMonth(now);
+    const end = endOfMonth(now);
+
+    return subscriptions
+        .filter(sub => sub.isActive)
+        .reduce((total, sub) => {
+            const occurrences = computeOccurrences(sub, start, end);
+            const convertedAmount = convertCurrency(sub.amount, sub.currency, displayCurrency, fxRates);
+            const freeUntilDate = sub.freeUntil ? startOfDay(parseISO(sub.freeUntil)) : null;
+
+            let subTotal = 0;
+            for (const date of occurrences) {
+                if (freeUntilDate && !isAfter(date, freeUntilDate)) {
+                    continue; // It's free
+                }
+                subTotal += convertedAmount;
+            }
+            return total + subTotal;
+        }, 0);
+}
+
+/**
+ * Calculate the total payment amount for the current month, grouped by category
+ */
+export function calculateCurrentMonthCategoryTotals(
+    subscriptions: Subscription[],
+    displayCurrency: Currency,
+    fxRates: FxRates
+): Record<Category, number> {
+    const totals: Record<Category, number> = {
+        AI: 0,
+        ENTERTAIN: 0,
+        MEMBERSHIP: 0,
+        OTHER: 0
+    };
+
+    const now = new Date();
+    const start = startOfMonth(now);
+    const end = endOfMonth(now);
+
+    for (const sub of subscriptions) {
+        if (!sub.isActive) continue;
+
+        const occurrences = computeOccurrences(sub, start, end);
         const convertedAmount = convertCurrency(sub.amount, sub.currency, displayCurrency, fxRates);
-        totals[sub.category] += occurrences.length * convertedAmount;
+        const freeUntilDate = sub.freeUntil ? startOfDay(parseISO(sub.freeUntil)) : null;
+
+        let subTotal = 0;
+        for (const date of occurrences) {
+            if (freeUntilDate && !isAfter(date, freeUntilDate)) {
+                continue; // It's free
+            }
+            subTotal += convertedAmount;
+        }
+        totals[sub.category] += subTotal;
     }
 
     return totals;

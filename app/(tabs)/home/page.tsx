@@ -4,7 +4,7 @@ import { useEffect, useCallback, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { motion } from 'framer-motion';
 import { db, Subscription, Category, initializeSettings } from '@/lib/db';
-import { totalMonthlyAmount, categoryMonthlyTotals, groupByCategory, countActiveSubscriptions } from '@/lib/calc';
+import { calculateCurrentMonthTotal, calculateCurrentMonthCategoryTotals, groupByCategory } from '@/lib/calc';
 import { useTranslation } from '@/lib/i18n';
 import { useFx } from '@/lib/FxContext';
 import { CategorySection } from '@/components/CategorySection';
@@ -43,8 +43,8 @@ export default function HomePage() {
     );
 
     const activeSubscriptions = subscriptions?.filter(s => s.isActive) || [];
-    const monthlyTotal = totalMonthlyAmount(activeSubscriptions, displayCurrency, fxRates);
-    const categoryTotals = categoryMonthlyTotals(activeSubscriptions, displayCurrency, fxRates);
+    const monthlyTotal = calculateCurrentMonthTotal(activeSubscriptions, displayCurrency, fxRates);
+    const categoryTotals = calculateCurrentMonthCategoryTotals(activeSubscriptions, displayCurrency, fxRates);
     const groupedSubs = groupByCategory(activeSubscriptions);
 
     const handleSubscriptionClick = useCallback((sub: Subscription) => {

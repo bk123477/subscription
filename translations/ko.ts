@@ -8,8 +8,8 @@ export const ko = {
     'nav.manage': '관리',
 
     // Home
-    'home.monthlyTotal': '월 평균',
-    'home.monthlyHint': '연간 요금제는 12개월로 환산',
+    'home.monthlyTotal': '이번 달 결제 예정',
+
     'home.activeSubscriptions': '개 활성 구독',
     'home.todayLabel': '오늘',
     'home.dashboardView': '대시보드 보기',
@@ -63,6 +63,8 @@ export const ko = {
     'form.cancel': '취소',
     'form.required': '필수 입력',
     'form.currency': '통화',
+    'form.freeTrialEnd': '무료 체험 종료일',
+    'form.freeTrial': '무료 체험',
 
     // Schedule
     'schedule.upcomingPayments': '예정 결제',

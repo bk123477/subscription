@@ -8,8 +8,8 @@ export const en = {
   'nav.manage': 'Manage',
 
   // Home
-  'home.monthlyTotal': 'Monthly Average',
-  'home.monthlyHint': 'Yearly plans prorated by 12 months',
+  'home.monthlyTotal': 'This Month\'s Scheduled',
+
   'home.activeSubscriptions': 'active subscriptions',
   'home.todayLabel': 'Today',
   'home.dashboardView': 'Dashboard View',
@@ -63,6 +63,8 @@ export const en = {
   'form.cancel': 'Cancel',
   'form.required': 'This field is required',
   'form.currency': 'Currency',
+  'form.freeTrialEnd': 'Free trial ends on',
+  'form.freeTrial': 'Free Trial',
 
   // Schedule
   'schedule.upcomingPayments': 'Upcoming Payments',
