@@ -5,8 +5,9 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Settings, Database, Trash2, Globe } from 'lucide-react';
 import { db, Subscription, resetAllData } from '@/lib/db';
-import { monthlyEquivalentAmount } from '@/lib/calc';
+import { monthlyEquivalentAmountConverted } from '@/lib/calc';
 import { getNextPaymentDate } from '@/lib/billing';
+import { useFx } from '@/lib/FxContext';
 import { useTranslation, useLanguage } from '@/lib/i18n';
 import { seedDemoData } from '@/lib/seed';
 import { categoryConfig } from '@/lib/theme';
@@ -29,6 +30,7 @@ import {
 export default function ManagePage() {
     const { t } = useTranslation();
     const { language, setLanguage } = useLanguage();
+    const { displayCurrency, fxRates } = useFx();
     const [searchQuery, setSearchQuery] = useState('');
     const [sortOption, setSortOption] = useState<SortOption>('amount-desc');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,13 +61,13 @@ export default function ManagePage() {
             );
         }
 
-        // Sort
+        // Sort (with currency conversion for amount sorting)
         return [...filtered].sort((a, b) => {
             switch (sortOption) {
                 case 'amount-desc':
-                    return monthlyEquivalentAmount(b) - monthlyEquivalentAmount(a);
+                    return monthlyEquivalentAmountConverted(b, displayCurrency, fxRates) - monthlyEquivalentAmountConverted(a, displayCurrency, fxRates);
                 case 'amount-asc':
-                    return monthlyEquivalentAmount(a) - monthlyEquivalentAmount(b);
+                    return monthlyEquivalentAmountConverted(a, displayCurrency, fxRates) - monthlyEquivalentAmountConverted(b, displayCurrency, fxRates);
                 case 'name':
                     return a.name.localeCompare(b.name);
                 case 'next-payment':
@@ -76,7 +78,7 @@ export default function ManagePage() {
                     return 0;
             }
         });
-    }, [subscriptions, searchQuery, sortOption]);
+    }, [subscriptions, searchQuery, sortOption, displayCurrency, fxRates]);
 
     const handleAddClick = useCallback(() => {
         setSelectedSubscription(null);
