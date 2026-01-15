@@ -349,10 +349,6 @@ export async function setFxRateCache(cache: Omit<FxRateCache, 'id'>): Promise<vo
 }
 
 // Reset all data
-export async function togglePaidStatus(id: string, currentStatus: boolean): Promise<void> {
-    await db.subscriptions.update(id, { isPaid: !currentStatus });
-}
-
 export async function resetAllData(): Promise<void> {
     await db.subscriptions.clear();
     await db.settings.clear();
