@@ -61,6 +61,7 @@ export function SubscriptionFormModal({
     const [billingMonth, setBillingMonth] = useState(1);
     const [notes, setNotes] = useState('');
     const [freeUntil, setFreeUntil] = useState('');
+    const [startedAt, setStartedAt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [errors, setErrors] = useState<{ name?: string; amount?: string; freeUntil?: string }>({});
@@ -94,6 +95,13 @@ export function SubscriptionFormModal({
                 setBillingCycle(subscription.billingCycle);
                 setFreeUntil('');
             }
+
+            // Set startedAt
+            if (subscription.startedAt) {
+                setStartedAt(subscription.startedAt.split('T')[0]);
+            } else {
+                setStartedAt('');
+            }
         } else {
             // Defaults
             setName('');
@@ -106,6 +114,7 @@ export function SubscriptionFormModal({
             setBillingMonth(1);
             setNotes('');
             setFreeUntil('');
+            setStartedAt('');
         }
         setErrors({});
     }, [subscription, isOpen]);
@@ -166,6 +175,7 @@ export function SubscriptionFormModal({
                 billingMonth: finalBillingCycle === 'YEARLY' ? billingMonth : undefined,
                 notes: notes.trim() || undefined,
                 freeUntil: finalFreeUntil,
+                startedAt: startedAt ? new Date(startedAt).toISOString() : null,
                 isActive: true,
             };
 
@@ -468,6 +478,21 @@ export function SubscriptionFormModal({
                                         )}
                                     </motion.div>
                                 </AnimatePresence>
+
+                                {/* Subscription Start Date */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="startedAt">{t('form.startedAt')}</Label>
+                                    <Input
+                                        id="startedAt"
+                                        type="date"
+                                        value={startedAt}
+                                        onChange={(e) => setStartedAt(e.target.value)}
+                                        className="w-full"
+                                    />
+                                    <p className="text-xs text-gray-500">
+                                        {t('form.startedAtHint')}
+                                    </p>
+                                </div>
 
                                 {/* Notes */}
                                 <Input

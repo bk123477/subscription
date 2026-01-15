@@ -20,6 +20,7 @@ export interface Subscription {
     updatedAt: string; // ISO string
     endedAt?: string | null; // ISO string, if ended
     freeUntil?: string | null; // ISO string, date until which payments are 0
+    startedAt?: string | null; // ISO string, when subscription actually started (for historical tracking)
 }
 
 export interface Settings {
@@ -113,6 +114,36 @@ class SubscriptionDB extends Dexie {
                 }
             });
         });
+
+        // Version 6: Add startedAt to subscriptions
+        this.version(6).stores({
+            subscriptions: 'id, name, category, billingCycle, isActive, createdAt, endedAt, freeUntil, startedAt',
+            settings: 'id',
+            fxRateCache: 'id'
+        }).upgrade(tx => {
+            // Set startedAt to Jan 1 of current year for existing subscriptions
+            const jan1CurrentYear = new Date(new Date().getFullYear(), 0, 1).toISOString();
+            return tx.table('subscriptions').toCollection().modify(sub => {
+                if (sub.startedAt === undefined || sub.startedAt === null) {
+                    sub.startedAt = jan1CurrentYear;
+                }
+            });
+        });
+
+        // Version 7: Fix startedAt for existing subscriptions that have null
+        // (This handles users who already ran Version 6 with the old migration)
+        this.version(7).stores({
+            subscriptions: 'id, name, category, billingCycle, isActive, createdAt, endedAt, freeUntil, startedAt',
+            settings: 'id',
+            fxRateCache: 'id'
+        }).upgrade(tx => {
+            const jan1CurrentYear = new Date(new Date().getFullYear(), 0, 1).toISOString();
+            return tx.table('subscriptions').toCollection().modify(sub => {
+                if (!sub.startedAt) {
+                    sub.startedAt = jan1CurrentYear;
+                }
+            });
+        });
     }
 }
 
@@ -157,7 +188,8 @@ export async function addSubscription(sub: Omit<Subscription, 'id' | 'createdAt'
         createdAt: now,
         updatedAt: now,
         endedAt: null,
-        freeUntil: sub.freeUntil || null
+        freeUntil: sub.freeUntil || null,
+        startedAt: sub.startedAt || null
     });
 
     return id;

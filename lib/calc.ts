@@ -190,18 +190,19 @@ export function categoryPercentages(
 
 /**
  * Compute historical payment occurrences for a subscription within a date range
- * Respects createdAt and endedAt
+ * Respects startedAt (or createdAt as fallback) and endedAt
  */
 export function computeOccurrences(
     sub: Subscription,
     startRange: Date,
     endRange: Date
 ): Date[] {
-    const createdAt = parseISO(sub.createdAt);
+    // Use startedAt if set, otherwise fall back to createdAt
+    const subscriptionStart = sub.startedAt ? parseISO(sub.startedAt) : parseISO(sub.createdAt);
     const endedAt = sub.endedAt ? parseISO(sub.endedAt) : null;
 
-    // Effective Start: Max(startRange, createdAt)
-    const effectiveStart = isAfter(createdAt, startRange) ? startOfDay(createdAt) : startOfDay(startRange);
+    // Effective Start: Max(startRange, subscriptionStart)
+    const effectiveStart = isAfter(subscriptionStart, startRange) ? startOfDay(subscriptionStart) : startOfDay(startRange);
 
     // Effective End: Min(endRange, endedAt)
     let effectiveEnd = startOfDay(endRange);
@@ -372,4 +373,65 @@ export function calculateCurrentMonthCategoryTotals(
     }
 
     return totals;
+}
+
+export interface MonthlyBreakdownItem {
+    month: number; // 1-12
+    total: number;
+    categories: Record<Category, number>;
+}
+
+/**
+ * Calculate monthly breakdown for a given year
+ * Returns an array of 12 months with total and category breakdown
+ */
+export function calculateMonthlyBreakdown(
+    subscriptions: Subscription[],
+    year: number,
+    displayCurrency: Currency,
+    fxRates: FxRates
+): MonthlyBreakdownItem[] {
+    const result: MonthlyBreakdownItem[] = [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-indexed
+
+    for (let month = 0; month < 12; month++) {
+        // For future months we still calculate projected values
+        // For current year, limit to current month
+        const start = new Date(year, month, 1);
+        const end = endOfMonth(start);
+
+        const categories: Record<Category, number> = {
+            AI: 0,
+            ENTERTAIN: 0,
+            MEMBERSHIP: 0,
+            OTHER: 0
+        };
+        let total = 0;
+
+        for (const sub of subscriptions) {
+            if (!sub.isActive && !sub.endedAt) continue;
+
+            const occurrences = computeOccurrences(sub, start, end);
+            const convertedAmount = convertCurrency(sub.amount, sub.currency, displayCurrency, fxRates);
+            const freeUntilDate = sub.freeUntil ? startOfDay(parseISO(sub.freeUntil)) : null;
+
+            for (const date of occurrences) {
+                if (freeUntilDate && !isAfter(date, freeUntilDate)) {
+                    continue; // It's free
+                }
+                categories[sub.category] += convertedAmount;
+                total += convertedAmount;
+            }
+        }
+
+        result.push({
+            month: month + 1, // 1-indexed
+            total,
+            categories
+        });
+    }
+
+    return result;
 }

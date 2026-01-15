@@ -65,6 +65,8 @@ export const en = {
   'form.currency': 'Currency',
   'form.freeTrialEnd': 'Free trial ends on',
   'form.freeTrial': 'Free Trial',
+  'form.startedAt': 'Subscription Start Date',
+  'form.startedAtHint': 'When did this subscription actually start? (Optional)',
 
   // Schedule
   'schedule.upcomingPayments': 'Upcoming Payments',
@@ -147,6 +149,9 @@ export const en = {
   'ytd.total': 'Total YTD Paid',
   'ytd.byCategory': 'Spend by Category',
   'ytd.note': 'Calculated from scheduled billing dates',
+  'ytd.summary': 'Summary',
+  'ytd.monthly': 'Monthly',
+  'ytd.monthlyBreakdown': 'Monthly Breakdown',
   'nav.ytd': 'YTD',
 } as const;
 

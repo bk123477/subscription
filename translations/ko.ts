@@ -65,6 +65,8 @@ export const ko = {
     'form.currency': '통화',
     'form.freeTrialEnd': '무료 체험 종료일',
     'form.freeTrial': '무료 체험',
+    'form.startedAt': '구독 시작일',
+    'form.startedAtHint': '이 구독이 실제로 시작된 날짜 (선택 사항)',
 
     // Schedule
     'schedule.upcomingPayments': '예정 결제',
@@ -147,5 +149,8 @@ export const ko = {
     'ytd.total': '총 누적 금액',
     'ytd.byCategory': '카테고리별 누적',
     'ytd.note': '예정된 결제일을 기준으로 계산됨',
+    'ytd.summary': '요약',
+    'ytd.monthly': '월별',
+    'ytd.monthlyBreakdown': '월별 상세',
     'nav.ytd': '누적',
 } as const;
