@@ -74,6 +74,8 @@ export const en = {
   'form.freeTrial': 'Free Trial',
   'form.startedAt': 'Subscription Start Date',
   'form.startedAtHint': 'When did this subscription actually start? (Optional)',
+  'form.serviceUrl': 'Service Website',
+  'form.serviceUrlHint': 'Enter URL to show service logo (Optional)',
 
   // Schedule
   'schedule.upcomingPayments': 'Upcoming Payments',

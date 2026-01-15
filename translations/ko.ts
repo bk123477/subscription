@@ -74,6 +74,8 @@ export const ko = {
     'form.freeTrial': '무료 체험',
     'form.startedAt': '구독 시작일',
     'form.startedAtHint': '이 구독이 실제로 시작된 날짜 (선택 사항)',
+    'form.serviceUrl': '서비스 웹사이트',
+    'form.serviceUrlHint': '로고를 표시하려면 URL을 입력하세요 (선택 사항)',
 
     // Schedule
     'schedule.upcomingPayments': '예정 결제',

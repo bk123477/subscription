@@ -119,11 +119,29 @@ export function SubscriptionRow({
                     }`}
             >
                 <div className="flex items-center gap-3">
-                    {showCategory && (
-                        <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: config.colors.icon }}
+                    {/* Service Logo or Category Indicator */}
+                    {subscription.serviceUrl ? (
+                        <img
+                            src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(subscription.serviceUrl)}&sz=64`}
+                            alt=""
+                            className="w-8 h-8 rounded-lg object-cover"
+                            onError={(e) => {
+                                // Fallback to category color dot if logo fails
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
                         />
+                    ) : null}
+                    {(!subscription.serviceUrl || showCategory) && (
+                        <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${subscription.serviceUrl ? 'hidden' : ''}`}
+                            style={{ backgroundColor: config.colors.bg }}
+                        >
+                            <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: config.colors.icon }}
+                            />
+                        </div>
                     )}
                     <div className="text-left">
                         <div className="flex items-center gap-2">

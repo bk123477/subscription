@@ -21,6 +21,7 @@ export interface Subscription {
     endedAt?: string | null; // ISO string, if ended
     freeUntil?: string | null; // ISO string, date until which payments are 0
     startedAt?: string | null; // ISO string, when subscription actually started (for historical tracking)
+    serviceUrl?: string | null; // URL of the service for logo fetching
 }
 
 export interface Settings {
@@ -144,6 +145,19 @@ class SubscriptionDB extends Dexie {
                 }
             });
         });
+
+        // Version 8: Add serviceUrl to subscriptions
+        this.version(8).stores({
+            subscriptions: 'id, name, category, billingCycle, isActive, createdAt, endedAt, freeUntil, startedAt, serviceUrl',
+            settings: 'id',
+            fxRateCache: 'id'
+        }).upgrade(tx => {
+            return tx.table('subscriptions').toCollection().modify(sub => {
+                if (sub.serviceUrl === undefined) {
+                    sub.serviceUrl = null;
+                }
+            });
+        });
     }
 }
 
@@ -189,7 +203,8 @@ export async function addSubscription(sub: Omit<Subscription, 'id' | 'createdAt'
         updatedAt: now,
         endedAt: null,
         freeUntil: sub.freeUntil || null,
-        startedAt: sub.startedAt || null
+        startedAt: sub.startedAt || null,
+        serviceUrl: sub.serviceUrl || null
     });
 
     return id;

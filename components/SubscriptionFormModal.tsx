@@ -62,6 +62,7 @@ export function SubscriptionFormModal({
     const [notes, setNotes] = useState('');
     const [freeUntil, setFreeUntil] = useState('');
     const [startedAt, setStartedAt] = useState('');
+    const [serviceUrl, setServiceUrl] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [errors, setErrors] = useState<{ name?: string; amount?: string; freeUntil?: string }>({});
@@ -102,6 +103,9 @@ export function SubscriptionFormModal({
             } else {
                 setStartedAt('');
             }
+
+            // Set serviceUrl
+            setServiceUrl(subscription.serviceUrl || '');
         } else {
             // Defaults
             setName('');
@@ -115,6 +119,7 @@ export function SubscriptionFormModal({
             setNotes('');
             setFreeUntil('');
             setStartedAt('');
+            setServiceUrl('');
         }
         setErrors({});
     }, [subscription, isOpen]);
@@ -176,6 +181,7 @@ export function SubscriptionFormModal({
                 notes: notes.trim() || undefined,
                 freeUntil: finalFreeUntil,
                 startedAt: startedAt ? new Date(startedAt).toISOString() : null,
+                serviceUrl: serviceUrl.trim() || null,
                 isActive: true,
             };
 
@@ -478,6 +484,22 @@ export function SubscriptionFormModal({
                                         )}
                                     </motion.div>
                                 </AnimatePresence>
+
+                                {/* Service URL (optional, for logo) */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="serviceUrl">{t('form.serviceUrl')}</Label>
+                                    <Input
+                                        id="serviceUrl"
+                                        type="url"
+                                        value={serviceUrl}
+                                        onChange={(e) => setServiceUrl(e.target.value)}
+                                        placeholder="https://netflix.com"
+                                        className="w-full"
+                                    />
+                                    <p className="text-xs text-gray-500">
+                                        {t('form.serviceUrlHint')}
+                                    </p>
+                                </div>
 
                                 {/* Subscription Start Date */}
                                 <div className="space-y-2">
