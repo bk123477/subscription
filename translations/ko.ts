@@ -40,12 +40,19 @@ export const ko = {
     'manage.sortName': '이름',
     'manage.sortNextPayment': '다음 결제일',
     'manage.sortCategory': '카테고리',
+    'manage.sortCurrency': '통화',
+    'manage.sortStartDate': '시작일',
     'manage.endSubscription': '구독 종료',
     'manage.reactivate': '구독 재개',
     'manage.deletePermanent': '영구 삭제',
     'manage.endConfirm': '구독을 종료하시겠습니까? 기록은 보존됩니다.',
     'manage.permanentDeleteConfirm': '영구 삭제하시겠습니까? 모든 기록이 사라집니다.',
     'manage.ended': '종료됨',
+    'manage.filterAll': '전체',
+    'manage.amountRange': '금액 범위',
+    'manage.min': '최소',
+    'manage.max': '최대',
+    'manage.clearFilters': '필터 초기화',
 
     // Form
     'form.name': '이름',
@@ -83,6 +90,9 @@ export const ko = {
     'empty.noSubscriptions': '구독 없음',
     'empty.addFirst': '첫 구독을 추가하세요',
     'empty.noResults': '검색 결과 없음',
+    'empty.feature1': '모든 정기 결제를 추적하세요',
+    'empty.feature2': '다가오는 결제일을 확인하세요',
+    'empty.feature3': '결제 알림을 받으세요',
 
     // Settings
     'settings.title': '설정',
@@ -124,6 +134,10 @@ export const ko = {
     'common.close': '닫기',
     'common.items': '개',
     'common.total': '합계',
+
+    // Row actions
+    'row.delete': '삭제',
+    'row.pause': '일시정지',
 
     // Currency
     'currency.USD': '달러',

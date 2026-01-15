@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useLiveQuery } from 'dexie-react-hooks'
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Settings, Database, Trash2, Globe } from 'lucide-react';
 import { db, Subscription, resetAllData } from '@/lib/db';
@@ -11,7 +11,7 @@ import { useFx } from '@/lib/FxContext';
 import { useTranslation, useLanguage } from '@/lib/i18n';
 import { seedDemoData } from '@/lib/seed';
 import { categoryConfig } from '@/lib/theme';
-import { SearchBar } from '@/components/SearchBar';
+import { SearchBar, SearchFilters } from '@/components/SearchBar';
 import { SortMenu, SortOption } from '@/components/SortMenu';
 import { SubscriptionRow } from '@/components/SubscriptionRow';
 import { SubscriptionFormModal } from '@/components/SubscriptionFormModal';
@@ -26,12 +26,16 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { parseISO } from 'date-fns';
 
 export default function ManagePage() {
     const { t } = useTranslation();
     const { language, setLanguage } = useLanguage();
     const { displayCurrency, fxRates } = useFx();
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchFilters, setSearchFilters] = useState<SearchFilters>({
+        query: '',
+        category: 'ALL',
+    });
     const [sortOption, setSortOption] = useState<SortOption>('amount-desc');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
@@ -52,13 +56,26 @@ export default function ManagePage() {
         let filtered = subscriptions;
 
         // Filter by search query
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
+        if (searchFilters.query.trim()) {
+            const query = searchFilters.query.toLowerCase();
             filtered = filtered.filter(
                 (s) =>
                     s.name.toLowerCase().includes(query) ||
                     s.notes?.toLowerCase().includes(query)
             );
+        }
+
+        // Filter by category
+        if (searchFilters.category !== 'ALL') {
+            filtered = filtered.filter(s => s.category === searchFilters.category);
+        }
+
+        // Filter by amount range
+        if (searchFilters.minAmount !== undefined) {
+            filtered = filtered.filter(s => s.amount >= searchFilters.minAmount!);
+        }
+        if (searchFilters.maxAmount !== undefined) {
+            filtered = filtered.filter(s => s.amount <= searchFilters.maxAmount!);
         }
 
         // Sort (with currency conversion for amount sorting)
@@ -74,11 +91,17 @@ export default function ManagePage() {
                     return getNextPaymentDate(a).getTime() - getNextPaymentDate(b).getTime();
                 case 'category':
                     return a.category.localeCompare(b.category);
+                case 'currency':
+                    return a.currency.localeCompare(b.currency);
+                case 'start-date':
+                    const aStart = a.startedAt ? parseISO(a.startedAt).getTime() : parseISO(a.createdAt).getTime();
+                    const bStart = b.startedAt ? parseISO(b.startedAt).getTime() : parseISO(b.createdAt).getTime();
+                    return aStart - bStart;
                 default:
                     return 0;
             }
         });
-    }, [subscriptions, searchQuery, sortOption, displayCurrency, fxRates]);
+    }, [subscriptions, searchFilters, sortOption, displayCurrency, fxRates]);
 
     const handleAddClick = useCallback(() => {
         setSelectedSubscription(null);
@@ -126,9 +149,9 @@ export default function ManagePage() {
             </div>
 
             {/* Search and Sort */}
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-start">
                 <div className="flex-1">
-                    <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                    <SearchBar value={searchFilters} onChange={setSearchFilters} />
                 </div>
                 <SortMenu value={sortOption} onChange={setSortOption} />
             </div>

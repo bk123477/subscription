@@ -40,12 +40,19 @@ export const en = {
   'manage.sortName': 'Name',
   'manage.sortNextPayment': 'Next Payment',
   'manage.sortCategory': 'Category',
+  'manage.sortCurrency': 'Currency',
+  'manage.sortStartDate': 'Start Date',
   'manage.endSubscription': 'End Subscription',
   'manage.reactivate': 'Reactivate',
   'manage.deletePermanent': 'Delete Permanently',
   'manage.endConfirm': 'End subscription? History will be kept.',
   'manage.permanentDeleteConfirm': 'Permanently delete? History will be lost.',
   'manage.ended': 'Ended',
+  'manage.filterAll': 'All',
+  'manage.amountRange': 'Amount Range',
+  'manage.min': 'Min',
+  'manage.max': 'Max',
+  'manage.clearFilters': 'Clear Filters',
 
   // Form
   'form.name': 'Name',
@@ -83,6 +90,9 @@ export const en = {
   'empty.noSubscriptions': 'No subscriptions yet',
   'empty.addFirst': 'Add your first subscription to get started',
   'empty.noResults': 'No subscriptions found',
+  'empty.feature1': 'Track all your recurring payments',
+  'empty.feature2': 'See upcoming billing dates',
+  'empty.feature3': 'Get payment reminders',
 
   // Settings
   'settings.title': 'Settings',
@@ -123,6 +133,10 @@ export const en = {
   'common.confirm': 'Confirm',
   'common.close': 'Close',
   'common.items': 'items',
+
+  // Row actions
+  'row.delete': 'Delete',
+  'row.pause': 'Pause',
   'common.total': 'Total',
 
   // Currency
