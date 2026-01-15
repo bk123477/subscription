@@ -66,6 +66,7 @@ export const ko = {
     'form.billingMonth': '결제 월',
     'form.notes': '메모',
     'form.notesPlaceholder': '선택 사항...',
+    'form.additionalDetails': '추가사항 기록하기',
     'form.save': '저장',
     'form.cancel': '취소',
     'form.required': '필수 입력',

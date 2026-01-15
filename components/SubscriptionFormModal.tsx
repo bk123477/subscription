@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Tag, Calendar, CreditCard } from 'lucide-react';
+import { X, Trash2, Tag, Calendar, CreditCard, ChevronRight } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { Category, BillingCycle, Currency, Subscription, addSubscription, updateSubscription, deleteSubscription, endSubscription, reactivateSubscription } from '@/lib/db';
 import { PaymentMethodManager } from './PaymentMethodManager';
@@ -68,6 +68,7 @@ export function SubscriptionFormModal({
     const [promoAmount, setPromoAmount] = useState('');
     const [promoUntil, setPromoUntil] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showAdditional, setShowAdditional] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [errors, setErrors] = useState<{ name?: string; amount?: string; freeUntil?: string }>({});
 
@@ -502,91 +503,123 @@ export function SubscriptionFormModal({
                                     </motion.div>
                                 </AnimatePresence>
 
-                                {/* Service URL (optional, for logo) */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="serviceUrl">{t('form.serviceUrl')}</Label>
-                                    <Input
-                                        id="serviceUrl"
-                                        type="url"
-                                        value={serviceUrl}
-                                        onChange={(e) => setServiceUrl(e.target.value)}
-                                        placeholder="https://netflix.com"
-                                        className="w-full"
-                                    />
-                                    <p className="text-xs text-gray-500">
-                                        {t('form.serviceUrlHint')}
-                                    </p>
-                                </div>
+                                {/* Additional Details Accordion */}
+                                <div className="space-y-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAdditional(!showAdditional)}
+                                        className="flex items-center gap-2 text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors w-full py-2"
+                                    >
+                                        <motion.div
+                                            animate={{ rotate: showAdditional ? 90 : 0 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <ChevronRight size={16} />
+                                        </motion.div>
+                                        {t('form.additionalDetails')}
+                                    </button>
 
-                                {/* Payment Method Selector */}
-                                <div className="space-y-3 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
-                                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                                        <CreditCard size={16} />
-                                        {t('form.paymentMethod')}
-                                    </div>
-                                    <PaymentMethodManager
-                                        selectedId={paymentMethodId}
-                                        onSelect={setPaymentMethodId}
-                                        mode="select"
-                                    />
-                                </div>
+                                    <AnimatePresence>
+                                        {showAdditional && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                                className="overflow-hidden space-y-5"
+                                            >
+                                                {/* Service URL (optional, for logo) */}
+                                                <div className="space-y-2 mt-2">
+                                                    <Label htmlFor="serviceUrl">{t('form.serviceUrl')}</Label>
+                                                    <Input
+                                                        id="serviceUrl"
+                                                        type="url"
+                                                        value={serviceUrl}
+                                                        onChange={(e) => setServiceUrl(e.target.value)}
+                                                        placeholder="https://netflix.com"
+                                                        className="w-full"
+                                                    />
+                                                    <p className="text-xs text-gray-500">
+                                                        {t('form.serviceUrlHint')}
+                                                    </p>
+                                                </div>
 
-                                {/* Promotional Discount (Optional) */}
-                                <div className="space-y-4 p-4 bg-blue-50/30 rounded-2xl border border-blue-100/50">
-                                    <div className="flex items-center gap-2 text-sm font-semibold text-blue-700">
-                                        <Tag size={16} />
-                                        {t('form.promoSection')}
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="promoAmount" className="text-xs">{t('form.promoAmount')}</Label>
-                                            <Input
-                                                id="promoAmount"
-                                                type="number"
-                                                value={promoAmount}
-                                                onChange={(e) => setPromoAmount(e.target.value)}
-                                                placeholder="0.00"
-                                                className="bg-white"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="promoUntil" className="text-xs">{t('form.promoUntil')}</Label>
-                                            <Input
-                                                id="promoUntil"
-                                                type="date"
-                                                value={promoUntil}
-                                                onChange={(e) => setPromoUntil(e.target.value)}
-                                                className="bg-white"
-                                            />
-                                        </div>
-                                    </div>
-                                    <p className="text-[10px] text-gray-500 italic">
-                                        {t('form.promoHint')}
-                                    </p>
-                                </div>
+                                                {/* Payment Method Selector */}
+                                                <div className="space-y-3 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                                                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                                        <CreditCard size={16} />
+                                                        {t('form.paymentMethod')}
+                                                    </div>
+                                                    <PaymentMethodManager
+                                                        selectedId={paymentMethodId}
+                                                        onSelect={setPaymentMethodId}
+                                                        mode="select"
+                                                    />
+                                                </div>
 
-                                {/* Subscription Start Date */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="startedAt">{t('form.startedAt')}</Label>
-                                    <Input
-                                        id="startedAt"
-                                        type="date"
-                                        value={startedAt}
-                                        onChange={(e) => setStartedAt(e.target.value)}
-                                        className="w-full"
-                                    />
-                                    <p className="text-xs text-gray-500">
-                                        {t('form.startedAtHint')}
-                                    </p>
-                                </div>
+                                                {/* Promotional Discount (Optional) */}
+                                                <div className="space-y-4 p-4 bg-blue-50/30 rounded-2xl border border-blue-100/50">
+                                                    <div className="flex items-center gap-2 text-sm font-semibold text-blue-700">
+                                                        <Tag size={16} />
+                                                        {t('form.promoSection')}
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="promoAmount" className="text-xs">{t('form.promoAmount')}</Label>
+                                                            <Input
+                                                                id="promoAmount"
+                                                                type="number"
+                                                                value={promoAmount}
+                                                                onChange={(e) => setPromoAmount(e.target.value)}
+                                                                placeholder="0.00"
+                                                                className="bg-white"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="promoUntil" className="text-xs">{t('form.promoUntil')}</Label>
+                                                            <Input
+                                                                id="promoUntil"
+                                                                type="date"
+                                                                value={promoUntil}
+                                                                onChange={(e) => setPromoUntil(e.target.value)}
+                                                                className="bg-white"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-500 italic">
+                                                        {t('form.promoHint')}
+                                                    </p>
+                                                </div>
 
-                                {/* Notes */}
-                                <Input
-                                    id="notes"
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    placeholder={t('form.notesPlaceholder')}
-                                />
+                                                {/* Subscription Start Date */}
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="startedAt">{t('form.startedAt')}</Label>
+                                                    <Input
+                                                        id="startedAt"
+                                                        type="date"
+                                                        value={startedAt}
+                                                        onChange={(e) => setStartedAt(e.target.value)}
+                                                        className="w-full"
+                                                    />
+                                                    <p className="text-xs text-gray-500">
+                                                        {t('form.startedAtHint')}
+                                                    </p>
+                                                </div>
+
+                                                {/* Notes */}
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="notes">{t('form.notes')}</Label>
+                                                    <Input
+                                                        id="notes"
+                                                        value={notes}
+                                                        onChange={(e) => setNotes(e.target.value)}
+                                                        placeholder={t('form.notesPlaceholder')}
+                                                    />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             </div>
 
                             {/* Footer */}

@@ -66,6 +66,7 @@ export const en = {
   'form.billingMonth': 'Billing Month',
   'form.notes': 'Notes',
   'form.notesPlaceholder': 'Optional notes...',
+  'form.additionalDetails': 'Record Additional Details',
   'form.save': 'Save',
   'form.cancel': 'Cancel',
   'form.required': 'This field is required',
