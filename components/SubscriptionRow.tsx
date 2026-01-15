@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { ChevronRight, Trash2, Pause, Play } from 'lucide-react';
-import { Category, Subscription, endSubscription, reactivateSubscription, deleteSubscription } from '@/lib/db';
+import { ChevronRight, Trash2, Pause, Play, Check } from 'lucide-react';
+import { Category, Subscription, endSubscription, reactivateSubscription, deleteSubscription, togglePaidStatus } from '@/lib/db';
 import { monthlyEquivalentAmount, monthlyEquivalentAmountConverted } from '@/lib/calc';
 import { formatCurrency } from '@/lib/format';
 import { categoryConfig } from '@/lib/theme';
@@ -143,6 +143,21 @@ export function SubscriptionRow({
                             />
                         </div>
                     )}
+
+                    {/* Payment Toggle */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            togglePaidStatus(subscription.id, !!subscription.isPaid);
+                        }}
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${subscription.isPaid
+                            ? 'bg-green-500 border-green-500 text-white'
+                            : 'border-gray-200 text-transparent hover:border-green-300'
+                            }`}
+                    >
+                        <Check size={14} className={subscription.isPaid ? 'opacity-100' : 'opacity-0'} />
+                    </button>
+
                     <div className="text-left">
                         <div className="flex items-center gap-2">
                             <p className={`font-medium text-gray-900 ${subscription.endedAt ? 'line-through decoration-gray-400' : ''}`}>

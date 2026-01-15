@@ -76,6 +76,11 @@ export const en = {
   'form.startedAtHint': 'When did this subscription actually start? (Optional)',
   'form.serviceUrl': 'Service Website',
   'form.serviceUrlHint': 'Enter URL to show service logo (Optional)',
+  'form.paymentMethod': 'Payment Method',
+  'form.promoSection': 'Promotional Discount',
+  'form.promoAmount': 'Promo Amount',
+  'form.promoUntil': 'Promo Until',
+  'form.promoHint': 'Applies this amount instead of regular price until the date above.',
 
   // Schedule
   'schedule.upcomingPayments': 'Upcoming Payments',
@@ -99,9 +104,19 @@ export const en = {
   // Settings
   'settings.title': 'Settings',
   'settings.language': 'Language',
-  'settings.seedDemo': 'Load Demo Data',
+  'settings.theme': 'Appearance',
+  'settings.theme.light': 'Light Mode',
+  'settings.theme.dark': 'Dark Mode',
+  'settings.theme.switch': 'Switch',
+  'settings.notifications': 'Notifications',
+  'settings.notifications.desc': 'Get reminders before billing',
+  'settings.notifications.enable': 'Enable',
+  'settings.export': 'Backup',
+  'settings.import': 'Restore',
+  'settings.seedDemo': 'Import Demo Data',
   'settings.resetData': 'Reset All Data',
-  'settings.resetConfirm': 'This will delete all your subscriptions. Are you sure?',
+  'settings.resetConfirmTitle': 'Reset All Data?',
+  'settings.resetConfirmDesc': 'This will permanently delete all your subscriptions and settings. This action cannot be undone.',
   'settings.english': 'English',
   'settings.korean': '한국어',
 
@@ -133,6 +148,7 @@ export const en = {
   'common.perYear': '/yr',
   'common.payments': 'payments',
   'common.confirm': 'Confirm',
+  'common.edit': 'Edit',
   'common.close': 'Close',
   'common.items': 'items',
 
@@ -183,8 +199,6 @@ export const en = {
   'payment.other': 'Other',
   'payment.last4': 'Last 4 Digits',
   'payment.color': 'Color',
-  'common.edit': 'Edit',
-  'form.paymentMethod': 'Payment Method',
 } as const;
 
 export type TranslationKey = keyof typeof en;

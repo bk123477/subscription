@@ -23,6 +23,9 @@ export interface Subscription {
     startedAt?: string | null; // ISO string, when subscription actually started (for historical tracking)
     serviceUrl?: string | null; // URL of the service for logo fetching
     paymentMethodId?: string | null; // Reference to payment method
+    promoAmount?: number | null; // Discounted amount during promotion
+    promoUntil?: string | null; // ISO string, date until which promo applies
+    isPaid?: boolean; // Whether the current period is already paid
 }
 
 export interface PaymentMethod {
@@ -183,6 +186,20 @@ class SubscriptionDB extends Dexie {
                 }
             });
         });
+
+        // Version 10: Add promoAmount, promoUntil, and isPaid to subscriptions
+        this.version(10).stores({
+            subscriptions: 'id, name, category, billingCycle, isActive, createdAt, endedAt, freeUntil, startedAt, serviceUrl, paymentMethodId, promoAmount, promoUntil, isPaid',
+            settings: 'id',
+            fxRateCache: 'id',
+            paymentMethods: 'id, name, type, createdAt'
+        }).upgrade(tx => {
+            return tx.table('subscriptions').toCollection().modify(sub => {
+                if (sub.promoAmount === undefined) sub.promoAmount = null;
+                if (sub.promoUntil === undefined) sub.promoUntil = null;
+                if (sub.isPaid === undefined) sub.isPaid = false;
+            });
+        });
     }
 }
 
@@ -332,6 +349,10 @@ export async function setFxRateCache(cache: Omit<FxRateCache, 'id'>): Promise<vo
 }
 
 // Reset all data
+export async function togglePaidStatus(id: string, currentStatus: boolean): Promise<void> {
+    await db.subscriptions.update(id, { isPaid: !currentStatus });
+}
+
 export async function resetAllData(): Promise<void> {
     await db.subscriptions.clear();
     await db.settings.clear();

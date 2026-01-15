@@ -3,13 +3,14 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks'
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Settings, Database, Trash2, Globe } from 'lucide-react';
+import { Plus, Settings, Database, Trash2, Globe, Download, Upload } from 'lucide-react';
 import { db, Subscription, resetAllData } from '@/lib/db';
 import { monthlyEquivalentAmountConverted } from '@/lib/calc';
 import { getNextPaymentDate } from '@/lib/billing';
 import { useFx } from '@/lib/FxContext';
 import { useTranslation, useLanguage } from '@/lib/i18n';
 import { seedDemoData } from '@/lib/seed';
+import { exportDataToJson, importDataFromJson } from '@/lib/backup';
 import { categoryConfig } from '@/lib/theme';
 import { SearchBar, SearchFilters } from '@/components/SearchBar';
 import { SortMenu, SortOption } from '@/components/SortMenu';
@@ -41,6 +42,7 @@ export default function ManagePage() {
     const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
 
     // Live query for subscriptions
     const subscriptions = useLiveQuery(
@@ -195,6 +197,33 @@ export default function ManagePage() {
                 </h2>
 
                 <div className="space-y-3">
+                    {/* Notifications Toggle */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-gray-100">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center">
+                                <Settings size={20} className="text-yellow-600" />
+                            </div>
+                            <div>
+                                <p className="font-medium text-gray-900">{t('settings.notifications')}</p>
+                                <p className="text-sm text-gray-500">
+                                    {t('settings.notifications.desc')}
+                                </p>
+                            </div>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                                const { requestNotificationPermission } = await import('@/lib/notifications');
+                                const granted = await requestNotificationPermission();
+                                if (granted) alert('Notifications enabled!');
+                                else alert('Permission denied or not supported.');
+                            }}
+                        >
+                            {t('settings.notifications.enable')}
+                        </Button>
+                    </div>
+
                     {/* Language Toggle */}
                     <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-gray-100">
                         <div className="flex items-center gap-3">
@@ -226,6 +255,57 @@ export default function ManagePage() {
                                 한국어
                             </Button>
                         </div>
+                    </div>
+
+                    {/* Backup & Restore */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <Button
+                            variant="outline"
+                            className="justify-start gap-3 h-14"
+                            onClick={async () => {
+                                setIsLoading(true);
+                                await exportDataToJson();
+                                setIsLoading(false);
+                            }}
+                            disabled={isLoading}
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
+                                <Download size={20} className="text-purple-500" />
+                            </div>
+                            <span className="font-medium">{t('settings.export')}</span>
+                        </Button>
+
+                        <label className="block">
+                            <div className={`flex items-center gap-3 h-14 px-4 rounded-xl border border-gray-100 bg-white hover:bg-gray-50 cursor-pointer transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                                    <Upload size={20} className="text-indigo-500" />
+                                </div>
+                                <span className="font-medium text-sm">{t('settings.import')}</span>
+                                <input
+                                    type="file"
+                                    accept=".json"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        setIsLoading(true);
+                                        const reader = new FileReader();
+                                        reader.onload = async (event) => {
+                                            try {
+                                                await importDataFromJson(event.target?.result as string);
+                                                window.location.reload();
+                                            } catch (err) {
+                                                alert('Failed to import data. Please check the file format.');
+                                            } finally {
+                                                setIsLoading(false);
+                                            }
+                                        };
+                                        reader.readAsText(file);
+                                    }}
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </label>
                     </div>
 
                     {/* Seed Demo Data */}
@@ -279,8 +359,8 @@ export default function ManagePage() {
             <Dialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{t('settings.resetData')}</DialogTitle>
-                        <DialogDescription>{t('settings.resetConfirm')}</DialogDescription>
+                        <DialogTitle>{t('settings.resetConfirmTitle')}</DialogTitle>
+                        <DialogDescription>{t('settings.resetConfirmDesc')}</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowResetConfirm(false)}>

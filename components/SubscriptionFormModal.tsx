@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, Tag, Calendar, CreditCard } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { Category, BillingCycle, Currency, Subscription, addSubscription, updateSubscription, deleteSubscription, endSubscription, reactivateSubscription } from '@/lib/db';
+import { PaymentMethodManager } from './PaymentMethodManager';
 import { categoryConfig, colors } from '@/lib/theme';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,6 +64,9 @@ export function SubscriptionFormModal({
     const [freeUntil, setFreeUntil] = useState('');
     const [startedAt, setStartedAt] = useState('');
     const [serviceUrl, setServiceUrl] = useState('');
+    const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
+    const [promoAmount, setPromoAmount] = useState('');
+    const [promoUntil, setPromoUntil] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [errors, setErrors] = useState<{ name?: string; amount?: string; freeUntil?: string }>({});
@@ -106,6 +110,13 @@ export function SubscriptionFormModal({
 
             // Set serviceUrl
             setServiceUrl(subscription.serviceUrl || '');
+
+            // Set paymentMethodId
+            setPaymentMethodId(subscription.paymentMethodId || null);
+
+            // Set promo fields
+            setPromoAmount(subscription.promoAmount?.toString() || '');
+            setPromoUntil(subscription.promoUntil ? subscription.promoUntil.split('T')[0] : '');
         } else {
             // Defaults
             setName('');
@@ -120,6 +131,9 @@ export function SubscriptionFormModal({
             setFreeUntil('');
             setStartedAt('');
             setServiceUrl('');
+            setPaymentMethodId(null);
+            setPromoAmount('');
+            setPromoUntil('');
         }
         setErrors({});
     }, [subscription, isOpen]);
@@ -182,6 +196,9 @@ export function SubscriptionFormModal({
                 freeUntil: finalFreeUntil,
                 startedAt: startedAt ? new Date(startedAt).toISOString() : null,
                 serviceUrl: serviceUrl.trim() || null,
+                paymentMethodId: paymentMethodId || null,
+                promoAmount: promoAmount ? parseFloat(promoAmount) : null,
+                promoUntil: promoUntil ? new Date(promoUntil).toISOString() : null,
                 isActive: true,
             };
 
@@ -498,6 +515,53 @@ export function SubscriptionFormModal({
                                     />
                                     <p className="text-xs text-gray-500">
                                         {t('form.serviceUrlHint')}
+                                    </p>
+                                </div>
+
+                                {/* Payment Method Selector */}
+                                <div className="space-y-3 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                        <CreditCard size={16} />
+                                        {t('form.paymentMethod')}
+                                    </div>
+                                    <PaymentMethodManager
+                                        selectedId={paymentMethodId}
+                                        onSelect={setPaymentMethodId}
+                                        mode="select"
+                                    />
+                                </div>
+
+                                {/* Promotional Discount (Optional) */}
+                                <div className="space-y-4 p-4 bg-blue-50/30 rounded-2xl border border-blue-100/50">
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-blue-700">
+                                        <Tag size={16} />
+                                        {t('form.promoSection')}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="promoAmount" className="text-xs">{t('form.promoAmount')}</Label>
+                                            <Input
+                                                id="promoAmount"
+                                                type="number"
+                                                value={promoAmount}
+                                                onChange={(e) => setPromoAmount(e.target.value)}
+                                                placeholder="0.00"
+                                                className="bg-white"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="promoUntil" className="text-xs">{t('form.promoUntil')}</Label>
+                                            <Input
+                                                id="promoUntil"
+                                                type="date"
+                                                value={promoUntil}
+                                                onChange={(e) => setPromoUntil(e.target.value)}
+                                                className="bg-white"
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 italic">
+                                        {t('form.promoHint')}
                                     </p>
                                 </div>
 
