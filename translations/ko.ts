@@ -169,4 +169,20 @@ export const ko = {
     'ytd.monthly': '월별',
     'ytd.monthlyBreakdown': '월별 상세',
     'nav.ytd': '누적',
+
+    // Payment methods
+    'payment.none': '결제 수단 없음',
+    'payment.addMethod': '결제 수단 추가',
+    'payment.editMethod': '결제 수단 편집',
+    'payment.methodName': '이름',
+    'payment.namePlaceholder': '내 삼성카드',
+    'payment.methodType': '유형',
+    'payment.creditCard': '신용카드',
+    'payment.debitCard': '체크카드',
+    'payment.bankAccount': '은행 계좌',
+    'payment.other': '기타',
+    'payment.last4': '끝 4자리',
+    'payment.color': '색상',
+    'common.edit': '편집',
+    'form.paymentMethod': '결제 수단',
 } as const;

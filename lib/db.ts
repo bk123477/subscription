@@ -22,6 +22,16 @@ export interface Subscription {
     freeUntil?: string | null; // ISO string, date until which payments are 0
     startedAt?: string | null; // ISO string, when subscription actually started (for historical tracking)
     serviceUrl?: string | null; // URL of the service for logo fetching
+    paymentMethodId?: string | null; // Reference to payment method
+}
+
+export interface PaymentMethod {
+    id: string;
+    name: string; // e.g., "My Visa Card", "Samsung Card"
+    type: 'credit_card' | 'debit_card' | 'bank_account' | 'other';
+    last4?: string; // Last 4 digits for display
+    color?: string; // For visual distinction
+    createdAt: string;
 }
 
 export interface Settings {
@@ -46,6 +56,7 @@ class SubscriptionDB extends Dexie {
     subscriptions!: Table<Subscription, string>;
     settings!: Table<Settings, number>;
     fxRateCache!: Table<FxRateCache, number>;
+    paymentMethods!: Table<PaymentMethod, string>;
 
     constructor() {
         super('SubscriptionTrackerDB');
@@ -155,6 +166,20 @@ class SubscriptionDB extends Dexie {
             return tx.table('subscriptions').toCollection().modify(sub => {
                 if (sub.serviceUrl === undefined) {
                     sub.serviceUrl = null;
+                }
+            });
+        });
+
+        // Version 9: Add paymentMethods table and paymentMethodId to subscriptions
+        this.version(9).stores({
+            subscriptions: 'id, name, category, billingCycle, isActive, createdAt, endedAt, freeUntil, startedAt, serviceUrl, paymentMethodId',
+            settings: 'id',
+            fxRateCache: 'id',
+            paymentMethods: 'id, name, type, createdAt'
+        }).upgrade(tx => {
+            return tx.table('subscriptions').toCollection().modify(sub => {
+                if (sub.paymentMethodId === undefined) {
+                    sub.paymentMethodId = null;
                 }
             });
         });
@@ -311,5 +336,34 @@ export async function resetAllData(): Promise<void> {
     await db.subscriptions.clear();
     await db.settings.clear();
     await db.fxRateCache.clear();
+    await db.paymentMethods.clear();
     await initializeSettings();
+}
+
+// PaymentMethod CRUD operations
+export async function addPaymentMethod(pm: Omit<PaymentMethod, 'id' | 'createdAt'>): Promise<string> {
+    const { v4: uuidv4 } = await import('uuid');
+    const id = uuidv4();
+
+    await db.paymentMethods.add({
+        ...pm,
+        id,
+        createdAt: new Date().toISOString()
+    });
+
+    return id;
+}
+
+export async function updatePaymentMethod(id: string, updates: Partial<Omit<PaymentMethod, 'id' | 'createdAt'>>): Promise<void> {
+    await db.paymentMethods.update(id, updates);
+}
+
+export async function deletePaymentMethod(id: string): Promise<void> {
+    // Also clear the paymentMethodId from any subscriptions using this method
+    await db.subscriptions.where('paymentMethodId').equals(id).modify({ paymentMethodId: null });
+    await db.paymentMethods.delete(id);
+}
+
+export async function getAllPaymentMethods(): Promise<PaymentMethod[]> {
+    return db.paymentMethods.toArray();
 }

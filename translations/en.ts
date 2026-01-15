@@ -169,6 +169,22 @@ export const en = {
   'ytd.monthly': 'Monthly',
   'ytd.monthlyBreakdown': 'Monthly Breakdown',
   'nav.ytd': 'YTD',
+
+  // Payment methods
+  'payment.none': 'No payment method',
+  'payment.addMethod': 'Add Payment Method',
+  'payment.editMethod': 'Edit Payment Method',
+  'payment.methodName': 'Name',
+  'payment.namePlaceholder': 'My Visa Card',
+  'payment.methodType': 'Type',
+  'payment.creditCard': 'Credit Card',
+  'payment.debitCard': 'Debit Card',
+  'payment.bankAccount': 'Bank Account',
+  'payment.other': 'Other',
+  'payment.last4': 'Last 4 Digits',
+  'payment.color': 'Color',
+  'common.edit': 'Edit',
+  'form.paymentMethod': 'Payment Method',
 } as const;
 
 export type TranslationKey = keyof typeof en;
